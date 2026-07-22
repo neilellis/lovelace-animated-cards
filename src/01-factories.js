@@ -330,14 +330,16 @@ const animHeater = (entity, name, { flameColor = "deep-orange", active = "heat" 
 
 // #28 Lamp — mushroom-light-card (keeps brightness/colour controls) with a glow pulse in the
 // light's OWN rgb_color while on. Ideal general-purpose animated light.
-const animLamp = (entity, name, { active = "on" } = {}) => ({
+// `collapsible: false` keeps the brightness/colour sliders permanently open (the floorplan
+// subviews want that on the wall tablet); the default hides them behind a chevron.
+const animLamp = (entity, name, { active = "on", collapsible = true } = {}) => ({
   type: "custom:mushroom-light-card",
   entity, name,
   use_light_color: true,
   show_brightness_control: true,
   show_color_temp_control: true,
   show_color_control: true,
-  collapsible_controls: true,
+  collapsible_controls: collapsible,
   icon_color: "auto",
   card_mod: { style: {
     "mushroom-shape-icon$": `

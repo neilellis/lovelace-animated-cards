@@ -83,7 +83,7 @@ optional power sensor + threshold and derive "on" from the actual draw.
 | **Animated Humidity (graph)** | `custom:anim-humidity-graph-card` | `graph` `graph_hours` | Three-band droplet with glow + halo layers and a 24 h sparkline bled into the corner |
 | **Animated Illuminance** | `custom:anim-lux-card` | `icon` `graph` `graph_hours` | Light-level tile ramping night-blue → dusk purple → warm → a near-white sun shimmer |
 | **Animated Kettle** | `custom:anim-kettle-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Heat glow swells and steam drifts off the spout while it boils |
-| **Animated Lamp** | `custom:anim-lamp-card` | `active` | Mushroom light card (brightness/colour controls) pulsing in the light's own colour |
+| **Animated Lamp** | `custom:anim-lamp-card` | `active` `controls_always_open` | Mushroom light card (brightness/colour controls) pulsing in the light's own colour |
 | **Animated LED Strip** | `custom:anim-led-strip-card` | `icon` `color` `active` | Vertical tile glowing in the strip's own colour while on |
 | **Animated Lock** | `custom:anim-lock-card` | `icon` `open_icon` `locked_glow` `unlocked_glow` `moving_glow` | Door lock — quiet green halo when locked, amber tilt when open, fast swing mid-turn, red shudder when jammed |
 | **Animated Mailbox** | `custom:anim-mailbox-card` | `icon` `active` `mail_color` `empty_color` `mail_text` `empty_text` `clear_chip` | Envelope drops into the icon and the flag waves while post is waiting; glowing status bar |
