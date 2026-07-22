@@ -63,7 +63,7 @@ registerKind("sprinkler", {
   label: "Animated Sprinkler",
   desc: "Head bobs and throws arcing droplets with a mist haze while the valve is open",
   domains: ["switch", "valve", "input_boolean"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.variant(["centred", "corner"]), F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.variant(["centred", "corner"]), F.active],
   help: {
     glow: "Water colour as R, G, B (default 33, 150, 243)",
     speed: "Bob duration (default 2s)",
@@ -74,12 +74,9 @@ registerKind("sprinkler", {
     const glow = c.glow || "33, 150, 243";
     const speed = c.speed || "2s";
     const active = c.active || "on";
-    const power = powerOf(c);
     const placement = c.variant === "corner" ? SPRINKLER_CORNER : clip;
     return {
-      ...(power
-        ? powerFace(c.entity, c.name, power, color)
-        : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+      ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
       icon: c.icon || "mdi:sprinkler-variant",
       layout: "vertical", fill_container: true,
       tap_action: { action: "toggle" },
@@ -88,7 +85,7 @@ registerKind("sprinkler", {
         "ha-tile-icon$": sprinklerIcon(".container", "border-radius: 9999px;"),
         ".": `${placement}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --sp-rgb: ${glow};
         --sp-anim: {{ 'irrig-bob ${speed} ease-in-out infinite' if on else 'none' }};
         --sp-heads: {{ 'irrig-heads 1.6s ease-out infinite' if on else 'none' }};

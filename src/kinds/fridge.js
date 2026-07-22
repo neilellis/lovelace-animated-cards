@@ -139,7 +139,7 @@ registerKind("fridge", {
     F.icon,
     F.active,
     { name: "power_entity", selector: { entity: { domain: "sensor", device_class: "power" } } },
-    F.powerAbove,
+    { name: "power_above", selector: { number: { min: 0, step: 0.1, mode: "box", unit_of_measurement: "W" } } },
     { name: "door_entity", selector: { entity: { domain: "binary_sensor" } } },
     { name: "door2_entity", selector: { entity: { domain: "binary_sensor" } } },
     { name: "fridge_temp_entity", selector: { entity: { domain: "sensor", device_class: "temperature" } } },
@@ -155,8 +155,6 @@ registerKind("fridge", {
   help: {
     variant: "snowfall = icy card (README #39); frosted = transparent card, snow behind; status = the cooling/super/defrost ladder",
     active: "State that counts as cooling in snowfall/frosted mode (default: on)",
-    power_entity: "Plug power sensor — when set, 'is it cooling' comes from the draw, not the switch state",
-    power_above: "Watts above which the compressor counts as running (default 0.5)",
     door_entity: "Door contact — open outranks every other state: red, shaking, mdi:fridge-alert",
     door2_entity: "Second door contact (e.g. the freezer drawer)",
     fridge_temp_entity: "Fridge-compartment temperature, shown on the secondary line",

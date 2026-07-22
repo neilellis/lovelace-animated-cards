@@ -54,12 +54,9 @@ const waterPumpCard = (c) => {
   const speed = c.speed || "0.8s";
   const glow = c.glow || "33, 150, 243";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "blue";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:pump",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -69,7 +66,7 @@ const waterPumpCard = (c) => {
       "ha-tile-icon$": WP_FX(".container"),
       ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --wp-rgb: ${glow};
         --wp-fx: {{ 'block' if on else 'none' }};
         --wp-spin: {{ 'wp-hydro ${speed} linear infinite' if on else 'none' }};
@@ -86,11 +83,11 @@ registerKind("water-pump", {
   label: "Animated Water Pump",
   desc: "Impeller spins, housing buzzes and pressure rings flow out while the pump runs",
   domains: ["switch", "input_boolean", "binary_sensor"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.active],
   help: {
     glow: "Pressure-ring colour as R, G, B (default 33, 150, 243)",
     speed: "Impeller revolution, e.g. 0.8s (smaller = faster)",
   },
-  docs: "The motor buzz is a 0.12s alternate shake (upstream's 0.1s reads as a strobe on a big display). On a metered plug, use `power_entity`/`power_above` so a pump that's powered but not running stays still.",
+  docs: "The motor buzz is a 0.12s alternate shake (upstream's 0.1s reads as a strobe on a big display). A pump that is powered but not running still animates — this card reads the entity's state, nothing else.",
   make: waterPumpCard,
 });

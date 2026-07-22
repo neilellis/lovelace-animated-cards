@@ -55,67 +55,67 @@ optional power sensor + threshold and derive "on" from the actual draw.
 <!-- CARD_INDEX -->
 | Card | Type | Extra options | What it does |
 |---|---|---|---|
-| **Animated 3D Printer** | `custom:anim-printer-3d-card` | `icon` `color` `glow` `speed` `variant` `max_value` `power_entity` `power_above` `active` | Nozzle rasters layer by layer while printing — optional progress beam and DONE badge |
-| **Animated Air Purifier** | `custom:anim-air-purifier-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Motor hum breath with clean-air rings rippling out while it runs |
+| **Animated 3D Printer** | `custom:anim-printer-3d-card` | `icon` `color` `glow` `speed` `variant` `max_value` `active` | Nozzle rasters layer by layer while printing — optional progress beam and DONE badge |
+| **Animated Air Purifier** | `custom:anim-air-purifier-card` | `icon` `color` `glow` `speed` `active` | Motor hum breath with clean-air rings rippling out while it runs |
 | **Animated Air Quality** | `custom:anim-air-quality-card` | `variant` `icon` `graph` `graph_hours` | AQI tile banded good→hazardous, glow + halo escalating with severity; optional 24 h sparkline |
 | **Animated Alarm** | `custom:anim-alarm-card` | `variant` `icon` `color` `glow` `speed` `active` `arm_states` | Alarm panel shield — calm green disarmed, red radar + sonar armed, orange arming, strobing triggered |
 | **Animated Alarmo Keypad** | `custom:anim-alarmo-card` | `keep_keypad_visible` `disarmed_glow` `armed_glow` `triggered_glow` `pending_glow` | Alarmo keypad card with a state-coloured inner glow — breathing disarmed, pulsing armed, strobing triggered |
 | **Animated Badge / Button** | `custom:anim-badge-card` | `icon` `content` `icon_color` `active_states` `below` `above` `animation` `always_animate` `speed` `active_bg` `active_fg` `active_border` `active_opacity` `inactive_bg` `inactive_fg` `inactive_border` `inactive_opacity` `overlay` `position` `offset_y` `offset_x` `icon_size` `text_size` `radius` `border_width` | Configurable chip pill — colours, icon and animation flip on a state match or threshold |
 | **Animated Barometer** | `custom:anim-pressure-card` | `icon` `graph` `graph_hours` | Barometric-pressure tile — storm blue through settled green to a high-pressure shimmer |
 | **Animated Battery** | `custom:anim-battery-card` | `variant` `charging_entity` `low` `medium` `target_soc` `icon` `color_low` `color_medium` `color_high` `color_charging` | Battery level — liquid disc, card-wide fill or striped bar; charging is its own colour |
-| **Animated Charger** | `custom:anim-charger-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Plug that swells, halos and throws electric arcs while charging — pulse rate tracks the draw |
+| **Animated Charger** | `custom:anim-charger-card` | `icon` `color` `glow` `speed` `power_entity` `active` | Plug that swells, halos and throws electric arcs while charging — pulse rate tracks the draw |
 | **Animated Climate Tile** | `custom:anim-climate-card` | — | Compact zone tile — icon coloured/glowing by room temp, tap toggles the zone |
 | **Animated CO₂** | `custom:anim-co2-card` | `icon` `graph` `graph_hours` | ppm tile — fresh green breath through to a red shimmer once the room needs airing |
 | **Animated Contact** | `custom:anim-contact-card` | `icon` `open_icon` `color` `glow` | Door/window sensor — calm when shut, pulsing red alert while open |
 | **Animated Curtain** | `custom:anim-curtain-card` | `icon` `fabric` `fabric_shadow` `pane_open` `pane_shut` `window_width` `height` | Draws the window — fabric panels slide with position, glass fades day-blue to night-dark |
 | **Animated Dishwasher** | `custom:anim-dishwasher-card` | `variant` `source` `icon` `power_entity` `switch_entity` `running_entity` `remaining_entity` `door_entity` `percent_entity` `max_minutes` `running_states` `drying_states` `done_states` `active_above` `heat_above` `glow` | Wash tub swirls and fills — bubbles washing, steam drying, sparkle when the cycle ends |
 | **Animated Doorbell** | `custom:anim-doorbell-card` | `icon` `color` `glow` `speed` `active` | Bell jolts and throws expanding rings while the button is pressed; silent and still otherwise |
-| **Animated Fan** | `custom:anim-fan-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Blades spin while on — for fans wired as a switch/plug |
-| **Animated Fireplace** | `custom:anim-fireplace-card` | `icon` `color` `glow` `tip_glow` `speed` `power_entity` `power_above` `active` | Flickering flame with a shifting halo and a slow ember bloom while it's lit |
+| **Animated Fan** | `custom:anim-fan-card` | `icon` `color` `glow` `speed` `active` | Blades spin while on — for fans wired as a switch/plug |
+| **Animated Fireplace** | `custom:anim-fireplace-card` | `icon` `color` `glow` `tip_glow` `speed` `active` | Flickering flame with a shifting halo and a slow ember bloom while it's lit |
 | **Animated Fridge / Freezer** | `custom:anim-fridge-card` | `variant` `icon` `active` `power_entity` `power_above` `door_entity` `door2_entity` `fridge_temp_entity` `freezer_temp_entity` `max_fridge_temp` `max_freezer_temp` `super_above` `defrost_above` `cooling_states` `super_states` `defrost_states` | Snow falls and the compressor rumbles while it cools; loud red alert when a door is left open |
 | **Animated Fuel Tank** | `custom:anim-fuel-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with amber fuel, twin counter-scrolling surfaces, red below the low mark |
-| **Animated Games Console** | `custom:anim-console-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Pad rumbles inside a cycling RGB LED bloom while the console is on |
-| **Animated Gaming Rig** | `custom:anim-gaming-rig-card` | `icon` `color` `glow` `glow_b` `idle_glow` `speed` `power_entity` `power_above` `active` | PC case with a spinning RGB fan and neon breathe under load; faint glow when idle |
+| **Animated Games Console** | `custom:anim-console-card` | `icon` `color` `glow` `speed` `active` | Pad rumbles inside a cycling RGB LED bloom while the console is on |
+| **Animated Gaming Rig** | `custom:anim-gaming-rig-card` | `icon` `color` `glow` `glow_b` `idle_glow` `speed` `active` | PC case with a spinning RGB fan and neon breathe under load; faint glow when idle |
 | **Animated Garage Door** | `custom:anim-garage-door-card` | `variant` `icon` `glow` `speed` `active` `closed_glow` `open_glow` `moving_glow` | Cover card — ring pulse while open, or a green/red/orange closed-open-moving state machine |
 | **Animated Heater** | `custom:anim-heater-card` | `flame_color` | Climate card with flame glow + ember pulse while the zone is heating |
-| **Animated Home Server** | `custom:anim-server-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Rack box with flickering disk LEDs and a throbbing network glow while it's up |
+| **Animated Home Server** | `custom:anim-server-card` | `icon` `color` `glow` `speed` `active` | Rack box with flickering disk LEDs and a throbbing network glow while it's up |
 | **Animated Humidity** | `custom:anim-humidity-card` | — | Bobbing droplet, colour-banded — amber parched, slate healthy, blue saturated |
 | **Animated Humidity (graph)** | `custom:anim-humidity-graph-card` | `graph` `graph_hours` | Three-band droplet with glow + halo layers and a 24 h sparkline bled into the corner |
 | **Animated Illuminance** | `custom:anim-lux-card` | `icon` `graph` `graph_hours` | Light-level tile ramping night-blue → dusk purple → warm → a near-white sun shimmer |
-| **Animated Kettle** | `custom:anim-kettle-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Heat glow swells and steam drifts off the spout while it boils |
+| **Animated Kettle** | `custom:anim-kettle-card` | `icon` `color` `glow` `speed` `active` | Heat glow swells and steam drifts off the spout while it boils |
 | **Animated Lamp** | `custom:anim-lamp-card` | `active` `controls_always_open` | Mushroom light card (brightness/colour controls) pulsing in the light's own colour |
 | **Animated LED Strip** | `custom:anim-led-strip-card` | `icon` `color` `active` | Vertical tile glowing in the strip's own colour while on |
 | **Animated Lock** | `custom:anim-lock-card` | `icon` `open_icon` `locked_glow` `unlocked_glow` `moving_glow` | Door lock — quiet green halo when locked, amber tilt when open, fast swing mid-turn, red shudder when jammed |
 | **Animated Mailbox** | `custom:anim-mailbox-card` | `icon` `active` `mail_color` `empty_color` `mail_text` `empty_text` `clear_chip` | Envelope drops into the icon and the flag waves while post is waiting; glowing status bar |
 | **Animated Media Player** | `custom:anim-media-card` | `icon` | Media-player card with an RGB screen-glow pulse while playing |
 | **Animated Motion Radar** | `custom:anim-motion-card` | `icon` | Radar HUD — cyan SCANNING sweep while idle, red DETECTED sonar on motion |
-| **Animated Nintendo Switch** | `custom:anim-nintendo-switch-card` | `icon` `color` `glow` `glow_b` `speed` `power_entity` `power_above` `active` | Red/blue Joy-Con blooms breathing either side of the icon, with a haptic rumble |
-| **Animated PC** | `custom:anim-pc-card` | `icon` `color` `led_color` `speed` `power_entity` `power_above` `active` | Tower case with an RGB edge glow and a blinking power LED while it runs |
-| **Animated Pixel Clock** | `custom:anim-awtrix-clock-card` | `icon` `color` `speed` `power_entity` `power_above` `active` | LED-matrix look — pixel grid, scrolling rainbow marquee and scanline glare (Awtrix/Ulanzi) |
+| **Animated Nintendo Switch** | `custom:anim-nintendo-switch-card` | `icon` `color` `glow` `glow_b` `speed` `active` | Red/blue Joy-Con blooms breathing either side of the icon, with a haptic rumble |
+| **Animated PC** | `custom:anim-pc-card` | `icon` `color` `led_color` `speed` `active` | Tower case with an RGB edge glow and a blinking power LED while it runs |
+| **Animated Pixel Clock** | `custom:anim-awtrix-clock-card` | `icon` `color` `speed` `active` | LED-matrix look — pixel grid, scrolling rainbow marquee and scanline glare (Awtrix/Ulanzi) |
 | **Animated PM2.5** | `custom:anim-pm25-card` | `icon` `b1` `b2` `b3` `b4` `b5` `graph` `graph_hours` | Particulate tile (µg/m³) banded good→extremely poor, with tunable per-standard cut-offs |
 | **Animated Pollen** | `custom:anim-pollen-card` | `variant` `icon` `count_entity` `high_states` `moderate_states` | Dark glass tile with a rotating two-colour aura — calm green, then amber, then red |
-| **Animated Printer** | `custom:anim-printer-card` | `icon` `color` `led_color` `speed` `power_entity` `power_above` `active` | Shakes and sweeps a scanner beam while printing; colour but still when idle |
+| **Animated Printer** | `custom:anim-printer-card` | `icon` `color` `led_color` `speed` `active` | Shakes and sweeps a scanner beam while printing; colour but still when idle |
 | **Animated Printer Ink** | `custom:anim-printer-ink-card` | `variant` `icon` `ink_c` `ink_m` `ink_y` `ink_k` `low_threshold` `printing_states` `scan` `ink_theme` | Ink levels drawn as CMYK bars (or a single black tank) with a scanning beam while printing |
-| **Animated Projector** | `custom:anim-projector-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Lamp hums, a beam fans out of the lens and the focus glow breathes while it's running |
-| **Animated RGB Light** | `custom:anim-rgb-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Icon disc cycles the hue wheel while the RGB light/strip is on |
+| **Animated Projector** | `custom:anim-projector-card` | `icon` `color` `glow` `speed` `active` | Lamp hums, a beam fans out of the lens and the focus glow breathes while it's running |
+| **Animated RGB Light** | `custom:anim-rgb-card` | `icon` `color` `glow` `speed` `active` | Icon disc cycles the hue wheel while the RGB light/strip is on |
 | **Animated Roller Shade** | `custom:anim-roller-shade-card` | `icon` `slat` `slat_shadow` `pane_open` `pane_shut` `window_width` `height` | Draws the window — a slatted blind rolls down with position, glass fades day→night |
-| **Animated Router** | `custom:anim-router-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Wifi rings radiate out while the router is up; dark and still when it isn't |
+| **Animated Router** | `custom:anim-router-card` | `icon` `color` `glow` `speed` `active` | Wifi rings radiate out while the router is up; dark and still when it isn't |
 | **Animated Solar Panel** | `custom:anim-solar-card` | `icon` `voltage_entity` `current_entity` `max_watts` `milliamps` `message` `theme` `color` `height` | Panel with a scanning sweep, load-scaled glow, a power bar and W / A / V badges |
 | **Animated Speaker** | `custom:anim-speaker-card` | `icon` `glow` `off_glow` `speed` | Media player whose icon thumps, shows EQ bars and a volume-scaled bass ring while playing |
-| **Animated Sprinkler** | `custom:anim-sprinkler-card` | `icon` `color` `glow` `speed` `variant` `power_entity` `power_above` `active` | Head bobs and throws arcing droplets with a mist haze while the valve is open |
-| **Animated Switch / Plug** | `custom:anim-switch-card` | `icon` `color` `glow` `power_entity` `power_above` `active` | Steady glow pulse while on; optional power sensor for plugs whose switch state lies |
+| **Animated Sprinkler** | `custom:anim-sprinkler-card` | `icon` `color` `glow` `speed` `variant` `active` | Head bobs and throws arcing droplets with a mist haze while the valve is open |
+| **Animated Switch / Plug** | `custom:anim-switch-card` | `icon` `color` `glow` `active` | Steady glow pulse while on — for plugs, relays and dumb appliances |
 | **Animated Temperature** | `custom:anim-temp-card` | — | Breathing thermometer on a calm comfort ramp (20–23 °C reads near-white) |
 | **Animated Temperature (graph)** | `custom:anim-temp-graph-card` | `variant` `graph` `graph_hours` | Banded thermometer with glow + halo layers and a 24 h sparkline bled into the corner |
 | **Animated Tumble Dryer** | `custom:anim-dryer-card` | `source` `icon` `power_entity` `switch_entity` `running_entity` `remaining_entity` `door_entity` `percent_entity` `max_minutes` `drying_states` `cooling_states` `done_states` `active_above` `heat_above` | Drum fills and turns — orange steam on heat, blue breeze on cool-down, sparkle when done |
 | **Animated Vacuum** | `custom:anim-vacuum-card` | `icon` `color` `active` | Robot wanders a cleaning path while the vacuum runs |
-| **Animated Vibration** | `custom:anim-vibration-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Icon judders with a shockwave ring while something is vibrating; quiet and dim when still |
+| **Animated Vibration** | `custom:anim-vibration-card` | `icon` `color` `glow` `speed` `active` | Icon judders with a shockwave ring while something is vibrating; quiet and dim when still |
 | **Animated VOC** | `custom:anim-voc-card` | `icon` `graph` `graph_hours` | Volatile-organic-compound index tile — clean green breath through to a red shimmer |
 | **Animated Washer-Dryer Combo** | `custom:anim-washer-dryer-combo-card` | `source` `icon` `power_entity` `switch_entity` `running_entity` `drying_entity` `remaining_entity` `door_entity` `percent_entity` `max_minutes` `washing_states` `spinning_states` `drying_states` `cooling_states` `done_states` `active_above` `spin_above` | One drum, five phases — wash bubbles, spin rotation, dry steam, cool breeze, done sparkle |
 | **Animated Washing Machine** | `custom:anim-washer-card` | `remaining_entity` `total_entity` `temp_entity` `spin_entity` `door_entity` | Hero card — spinning drum, bubbles and a programme progress bar (machine_status sensor) |
 | **Animated Washing Machine (smart plug)** | `custom:anim-washer-plug-card` | `icon` `power_entity` `switch_entity` `running_entity` `door_entity` `active_above` `spin_above` `heat_above` | Dumb washer read off its plug — wash bubbles, spin rotation and a heater band, from watts alone |
 | **Animated Water Boiler** | `custom:anim-boiler-card` | `variant` `icon` | Tank that fills with hot water — bar width tracks temperature, blue → orange → red |
 | **Animated Water Leak** | `custom:anim-water-leak-card` | `variant` `icon` `water` `level` `wet_text` `dry_text` | Leak sensor that floods — the card (or the icon) fills with wobbling water when wet |
-| **Animated Water Pump** | `custom:anim-water-pump-card` | `icon` `color` `glow` `speed` `power_entity` `power_above` `active` | Impeller spins, housing buzzes and pressure rings flow out while the pump runs |
+| **Animated Water Pump** | `custom:anim-water-pump-card` | `icon` `color` `glow` `speed` `active` | Impeller spins, housing buzzes and pressure rings flow out while the pump runs |
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
@@ -216,13 +216,13 @@ Bind a level sensor that reports **percent full** (0–100). A depth or litre se
 
 <details><summary><b>Animated Games Console</b> — notes</summary>
 
-Loud by design (fast rumble + bright bloom); keep one per view. On a metered plug, set `power_entity`/`power_above` so a console left in standby doesn't rumble all evening.
+Loud by design (fast rumble + bright bloom); keep one per view. A console left in standby will keep rumbling unless its integration reports standby as a distinct state — set `active` to the one that means playing.
 
 </details>
 
 <details><summary><b>Animated Gaming Rig</b> — notes</summary>
 
-With a `power_entity` set, draw above `power_above` reads as gaming (fan + neon) and below it as powered-but-idle (static glow) — the three-state look upstream drove from its number-mode block. Without one, on == gaming.
+Two states: `active` (default `on`) reads as gaming — fan + neon — and anything else as idle. Upstream drove a third powered-but-idle level from a number-mode block; that needed a watts-as-state override, which this pack deliberately doesn't have.
 
 </details>
 
@@ -246,7 +246,7 @@ The sparkline needs two more HACS frontend cards: **mini-graph-card** and **vert
 
 <details><summary><b>Animated Kettle</b> — notes</summary>
 
-Redrawn from upstream: the original card animates a CRT `tv-glitch` on the kettle, which reads as a fault rather than a boil. This kind uses a heat glow + rising steam instead. On a metered plug set `power_entity` and `power_above: 100` so standby draw doesn't count as boiling.
+Redrawn from upstream: the original card animates a CRT `tv-glitch` on the kettle, which reads as a fault rather than a boil. This kind uses a heat glow + rising steam instead. It keys off the plug's own on/off state.
 
 </details>
 
@@ -276,7 +276,7 @@ Bind the **level** sensor (a text state like `low`/`moderate`/`high`) as the ent
 
 <details><summary><b>Animated Printer</b> — notes</summary>
 
-Two-level card: `active` decides powered vs dead (colour vs monochrome), while shake/beam/LED only run when it's actually printing. Set `power_entity`/`power_above` on a metered plug for that second level; otherwise a printer that is merely on will animate continuously.
+Two-level card: `active` decides powered vs dead (colour vs monochrome), while shake/beam/LED only run when it's actually printing. That second level needs a status entity that distinguishes printing from idle; against a bare on/off switch a printer that is merely on will animate continuously.
 
 </details>
 
@@ -399,7 +399,7 @@ Binary — `on` means wet. The fill level is cosmetic (a leak sensor has no dept
 
 <details><summary><b>Animated Water Pump</b> — notes</summary>
 
-The motor buzz is a 0.12s alternate shake (upstream's 0.1s reads as a strobe on a big display). On a metered plug, use `power_entity`/`power_above` so a pump that's powered but not running stays still.
+The motor buzz is a 0.12s alternate shake (upstream's 0.1s reads as a strobe on a big display). A pump that is powered but not running still animates — this card reads the entity's state, nothing else.
 
 </details>
 

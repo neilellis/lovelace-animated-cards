@@ -2,7 +2,7 @@
 // Lamp housing hums (a tiny lateral wobble), a soft beam fans out of the left edge and the
 // lens keeps a breathing focus glow. Off = still, beam fully hidden (opacity 0, not a faint
 // ghost — a dark projector must not look like it's throwing light). Upstream's number-mode
-// block becomes the shared power_entity/power_above override, which is what you actually want
+// block is dropped — this card reads the entity's own state, which is what you actually want
 // for a projector on a smart plug: the plug's switch state lies, the lamp draw doesn't.
 
 const PROJECTOR_KEYFRAMES = `
@@ -54,22 +54,18 @@ registerKind("projector", {
   label: "Animated Projector",
   desc: "Lamp hums, a beam fans out of the lens and the focus glow breathes while it's running",
   domains: ["switch", "input_boolean", "media_player", "light"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.active],
   help: {
     glow: "Focus-glow colour as R, G, B — e.g. 3, 169, 244",
     speed: "Hum/beam duration (default 1.7s)",
-    power_entity: "Optional lamp-power sensor — the honest signal for a projector on a smart plug",
   },
   make: (c) => {
     const color = c.color || "accent";
     const glow = c.glow || "3, 169, 244";
     const speed = c.speed || "1.7s";
     const active = c.active || "on";
-    const power = powerOf(c);
     return {
-      ...(power
-        ? powerFace(c.entity, c.name, power, color)
-        : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+      ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
       icon: c.icon || "mdi:projector",
       layout: "vertical", fill_container: true,
       tap_action: { action: "toggle" },
@@ -78,7 +74,7 @@ registerKind("projector", {
         "ha-tile-icon$": projectorIcon(".container", "border-radius: 9999px;"),
         ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --pj-rgb: ${glow};
         --pj-anim: {{ 'proj-hum ${speed} ease-in-out infinite' if on else 'none' }};
         --pj-beam: {{ 'proj-beam ${speed} ease-in-out infinite' if on else 'none' }};

@@ -57,12 +57,9 @@ const nsCard = (c) => {
   const left = c.glow || "255, 20, 20";
   const right = c.glow_b || "0, 200, 255";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "white";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:nintendo-switch",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -71,7 +68,7 @@ const nsCard = (c) => {
       "ha-tile-icon$": NS_FX(".container", "9999px"),
       ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --ns-left: ${left};
         --ns-right: ${right};
         --ns-glow: {{ 'ns-neon ${speed} ease-in-out infinite alternate' if on else 'none' }};
@@ -91,7 +88,7 @@ registerKind("nintendo-switch", {
   schema: [
     F.icon, F.color, F.glow,
     { name: "glow_b", selector: { text: {} } },
-    F.speed, F.powerEntity, F.powerAbove, F.active,
+    F.speed, F.active,
   ],
   help: {
     glow: "Left Joy-Con colour as R, G, B (default 255, 20, 20)",

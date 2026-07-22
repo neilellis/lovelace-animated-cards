@@ -5,8 +5,8 @@
 // `tv-standby` keyframe. Redrawn with the right metaphor: a heat glow that swells as the
 // element works, plus a wisp of steam drifting up off the spout. Idle = still + dimmed.
 //
-// A kettle is a dumb 2–3 kW load, so the power override is the honest signal (the plug's own
-// switch state can lie); set power_above around 100 W to catch the boil and ignore standby.
+// A kettle is a dumb 2–3 kW load with no state of its own beyond its plug, so the card keys off
+// the switch: on == boiling. Point it at a `binary_sensor` if you have a better boil signal.
 
 const KETTLE_FX = (sel, radius) => `
       ${sel} {${radius ? `
@@ -42,12 +42,9 @@ const kettleCard = (c) => {
   const speed = c.speed || "2.2s";
   const glow = c.glow || "255, 138, 101";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "deep-orange";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:kettle-steam",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -57,7 +54,7 @@ const kettleCard = (c) => {
       // a kettle boils for ~3 minutes a day → both animations default to `none`
       ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --ket-rgb: ${glow};
         --ket-anim: {{ 'kettle-heat ${speed} ease-in-out infinite' if on else 'none' }};
         --ket-steam: {{ 'kettle-steam ${speed} ease-out infinite' if on else 'none' }};
@@ -72,12 +69,11 @@ registerKind("kettle", {
   label: "Animated Kettle",
   desc: "Heat glow swells and steam drifts off the spout while it boils",
   domains: ["switch", "input_boolean", "binary_sensor"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.active],
   help: {
     glow: "Heat glow as R, G, B (default 255, 138, 101)",
     speed: "Boil cycle duration, e.g. 2.2s (smaller = angrier boil)",
-    power_above: "Watts above which it counts as boiling — try ~100 for a kettle",
   },
-  docs: "Redrawn from upstream: the original card animates a CRT `tv-glitch` on the kettle, which reads as a fault rather than a boil. This kind uses a heat glow + rising steam instead. On a metered plug set `power_entity` and `power_above: 100` so standby draw doesn't count as boiling.",
+  docs: "Redrawn from upstream: the original card animates a CRT `tv-glitch` on the kettle, which reads as a fault rather than a boil. This kind uses a heat glow + rising steam instead. It keys off the plug's own on/off state.",
   make: kettleCard,
 });

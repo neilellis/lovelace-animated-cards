@@ -61,12 +61,9 @@ const serverCard = (c) => {
   const speed = c.speed || "1.5s";
   const glow = c.glow || "33, 150, 243";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "blue";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:server-network",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -75,7 +72,7 @@ const serverCard = (c) => {
       "ha-tile-icon$": SRV_FX(".container"),
       ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --srv-rgb: ${glow};
         --srv-throb: {{ 'srv-throb ${speed} ease-in-out infinite' if on else 'none' }};
         --srv-glow: {{ 'srv-glow ${speed} ease-in-out infinite' if on else 'none' }};
@@ -93,7 +90,7 @@ registerKind("server", {
   desc: "Rack box with flickering disk LEDs and a throbbing network glow while it's up",
   domains: ["switch", "binary_sensor", "input_boolean", "device_tracker"],
   deviceClass: ["connectivity", "running"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.active],
   help: {
     glow: "Network-load glow as R, G, B (default 33, 150, 243)",
     speed: "Network throb period, e.g. 1.5s",

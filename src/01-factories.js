@@ -33,16 +33,16 @@ const clip = `
         clip-path: inset(0 0 0 0 round var(--ha-card-border-radius, 12px));
       }`;
 
-// ── TRUTHFUL "ON" ─────────────────────────────────────────────────────────────────────────
-// Several of this house's dumb appliances hang off Tuya plugs whose SWITCH state LIES — the BenQ
-// monitor reports `off` while visibly drawing 1 W. Where the plug meters power, that reading is the
-// only trustworthy signal, so the factories below take an optional `power: {entity, above}` and
-// derive "is it on" from the draw, while the card still TOGGLES the switch on tap. `float(-1)` makes
-// `unavailable` fall through as off rather than coercing to a plausible 0.
-// See .claude/skills/animated-cards/design-principles.md §5.
-const onTest = (active, power) => power
-  ? `{% set on = states('${power.entity}') | float(-1) > ${power.above ?? 0.5} %}`
-  : `{% set on = states(config.entity) == '${active}' %}`;
+// ── "ON" ──────────────────────────────────────────────────────────────────────────────────
+// A card is active when its entity says so. Nothing more clever than that.
+//
+// REMOVED 2026-07-22 (Neil): these factories used to accept `power: {entity, above}` and derive
+// "is it on" from a plug's metered draw instead, because several Tuya plugs appeared to LIE (the
+// BenQ's socket read `off` while metering 1 W). That was a misdiagnosis of a Tuya problem: the
+// cloud link rots, freezing states for days while commands fail `sign invalid`, so the switch and
+// its power sensor were simply two readings of different ages. `automation.tuya_nightly_reload`
+// is the fix. Don't reintroduce the override — it hid the real fault for weeks.
+const onTest = (active) => `{% set on = states(config.entity) == '${active}' %}`;
 
 // ── TWO ICON STRUCTURES (Mushroom on HA 2026.7) ──────────────────────────────────────────
 // mushroom-entity-card / -light-card / -media-player-card still render the classic
@@ -54,20 +54,6 @@ const onTest = (active, power) => power
 // washer stayed tile-sized with zero errors anywhere). So every template-card factory carries
 // BOTH: the legacy shape block AND an `ha-tile-icon$` mirror, with icon-spin rules at HOST
 // level (ha-state-icon is slotted → reachable from the card tree in both structures).
-
-// When a card is power-driven, the entity's OWN state text is a lie (the BenQ's switch says `off`
-// at 1 W) — so an entity-card's secondary line would contradict the animation next to it. These
-// cards therefore become template-cards, whose secondary we can compute: the truthful on/off plus
-// the live draw. `primary` falls back to the entity's friendly name when no name is passed.
-const powerFace = (entity, name, power, color) => ({
-  type: "custom:mushroom-template-card",
-  entity,
-  primary: name || `{{ state_attr('${entity}', 'friendly_name') }}`,
-  secondary: `{% set w = states('${power.entity}') | float(-1) %}{% if w < 0 %}Unavailable{% elif w > ${power.above ?? 0.5} %}On · {{ w | round(0) }} W{% else %}Off{% endif %}`,
-  // template-cards apply icon_color unconditionally, unlike entity-cards which grey an off icon by
-  // state — so colour it by the DRAW, or an idle device sits there looking live.
-  icon_color: `{% set w = states('${power.entity}') | float(-1) %}{{ '${color}' if w > ${power.above ?? 0.5} else 'disabled' }}`,
-});
 
 // #11 LED Strip — glow in the strip's own colour while on. Vertical layout (glowing orb on top,
 // name centred below) so the 2-per-row tiles stay balanced and names get the full card width.
@@ -106,8 +92,8 @@ const animLedStrip = (entity, name, { icon = "mdi:led-strip-variant", color = "b
 // so the glow colour is a build-time `glow` rgb string, default amber). For smart-plug devices
 // (fan, super-bright light, monitor power) where animLamp's brightness/colour controls don't
 // apply. Same instant-paint contract as animLedStrip: static keyframes, on/off via --shape-animation.
-const animSwitch = (entity, name, { icon = "mdi:power-socket", color = "amber", glow = "255, 193, 7", active = "on", power = null } = {}) => ({
-  ...(power ? powerFace(entity, name, power, color) : { type: "custom:mushroom-entity-card", entity, name, icon_color: color }),
+const animSwitch = (entity, name, { icon = "mdi:power-socket", color = "amber", glow = "255, 193, 7", active = "on" } = {}) => ({
+  type: "custom:mushroom-entity-card", entity, name, icon_color: color,
   icon,
   layout: "vertical", fill_container: true,
   tap_action: { action: "toggle" },
@@ -137,7 +123,7 @@ const animSwitch = (entity, name, { icon = "mdi:power-socket", color = "amber", 
       }`,
     ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --ig-rgb: ${glow};
         --shape-animation: {{ 'switch-glow 2s ease-in-out infinite' if on else 'none' }};
         --ig-op: {{ '1' if on else '0.4' }};
@@ -148,8 +134,8 @@ const animSwitch = (entity, name, { icon = "mdi:power-socket", color = "amber", 
 
 // Fan — the icon (blades) SPINS while on, with a soft steady glow; idle = still + dimmed. For a
 // fan wired as a `switch` (so Mushroom's native fan-card spin can't bind). `speed` tunes the spin.
-const animFan = (entity, name, { icon = "mdi:fan", color = "teal", glow = "0, 200, 180", active = "on", speed = "1.6s", power = null } = {}) => ({
-  ...(power ? powerFace(entity, name, power, color) : { type: "custom:mushroom-entity-card", entity, name, icon_color: color }),
+const animFan = (entity, name, { icon = "mdi:fan", color = "teal", glow = "0, 200, 180", active = "on", speed = "1.6s" } = {}) => ({
+  type: "custom:mushroom-entity-card", entity, name, icon_color: color,
   icon,
   layout: "vertical", fill_container: true,
   tap_action: { action: "toggle" },
@@ -175,7 +161,7 @@ const animFan = (entity, name, { icon = "mdi:fan", color = "teal", glow = "0, 20
     // a shadow-side `ha-state-icon {}` rule never matched slotted content anyway.
     ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --fan-spin: {{ 'fan-rot ${speed} linear infinite' if on else 'none' }};
         --fan-glow: {{ '0 0 14px 4px rgba(${glow}, 0.5)' if on else 'none' }};
         --ig-op: {{ '1' if on else '0.4' }};

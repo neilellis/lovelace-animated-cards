@@ -50,12 +50,9 @@ const pcCard = (c) => {
   const speed = c.speed || "5s";
   const led = c.led_color || "#ffeb3b";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "white";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:desktop-tower",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -64,7 +61,7 @@ const pcCard = (c) => {
       "ha-tile-icon$": PC_FX(".container"),
       ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --pc-led: ${led};
         --pc-glow: {{ 'pc-rgb ${speed} linear infinite' if on else 'none' }};
         --pc-led-anim: {{ 'pc-led-blink 0.5s steps(2, start) infinite' if on else 'none' }};
@@ -81,7 +78,7 @@ registerKind("pc", {
   label: "Animated PC",
   desc: "Tower case with an RGB edge glow and a blinking power LED while it runs",
   domains: ["switch", "input_boolean", "binary_sensor", "device_tracker"],
-  schema: [F.icon, F.color, { name: "led_color", selector: { text: {} } }, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, { name: "led_color", selector: { text: {} } }, F.speed, F.active],
   help: {
     led_color: "Power-button LED colour (CSS colour, default #ffeb3b)",
     speed: "One full RGB cycle, e.g. 5s",

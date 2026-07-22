@@ -104,7 +104,6 @@ registerKind("washer-plug", {
     { name: "heat_above", selector: { number: { min: 0, step: 10, mode: "box", unit_of_measurement: "W" } } },
   ],
   help: {
-    power_entity: "The plug's power sensor — the truth source. Defaults to the card's own entity",
     switch_entity: "Plug switch — gives the distinct 'Plug Off' (red) and 'Offline' (grey) states",
     running_entity: "Optional debounced running latch (see docs) — its last_changed drives the elapsed line",
     door_entity: "Optional door contact — noted on the secondary line while open (never alarmed: an open door is normal here)",

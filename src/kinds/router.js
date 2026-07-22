@@ -45,12 +45,9 @@ const routerCard = (c) => {
   const speed = c.speed || "1.7s";
   const glow = c.glow || "33, 150, 243";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "blue";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:router-wireless",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -59,7 +56,7 @@ const routerCard = (c) => {
       "ha-tile-icon$": ROUTER_FX(".container", "9999px"),
       ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --rtr-rgb: ${glow};
         --rtr-anim: {{ 'rtr-waves ${speed} ease-out infinite' if on else 'none' }};
         --rtr-op: {{ '1' if on else '0.45' }};
@@ -74,7 +71,7 @@ registerKind("router", {
   desc: "Wifi rings radiate out while the router is up; dark and still when it isn't",
   domains: ["switch", "binary_sensor", "input_boolean"],
   deviceClass: ["connectivity"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.active],
   help: {
     glow: "Ring colour as R, G, B (default 33, 150, 243)",
     speed: "Time for one ring to travel out, e.g. 1.7s",

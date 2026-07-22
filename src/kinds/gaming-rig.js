@@ -5,7 +5,7 @@
 // but idle it just sits there with a faint static glow; off it's dark.
 //
 // Upstream's number-mode block is the load test — here that's the optional power sensor
-// (power_entity/power_above): above the threshold = gaming, below = idle. With no power sensor
+// (the `active` state): matching = gaming, otherwise idle. With no distinct state
 // configured, on == gaming. The case keeps a 10px radius in both icon structures (a round tile
 // would undo the whole "it's a box" idea).
 
@@ -55,12 +55,9 @@ const rigCard = (c) => {
   const glowB = c.glow_b || "255, 0, 255";
   const idleGlow = c.idle_glow || "255, 255, 255";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "white";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:desktop-tower",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -107,7 +104,7 @@ registerKind("gaming-rig", {
     F.icon, F.color, F.glow,
     { name: "glow_b", selector: { text: {} } },
     { name: "idle_glow", selector: { text: {} } },
-    F.speed, F.powerEntity, F.powerAbove, F.active,
+    F.speed, F.active,
   ],
   help: {
     glow: "First neon colour as R, G, B (default 0, 255, 255)",
@@ -115,6 +112,6 @@ registerKind("gaming-rig", {
     idle_glow: "Static glow while on but idle, as R, G, B (default 255, 255, 255)",
     speed: "Fan revolution / neon breath period, e.g. 2s",
   },
-  docs: "With a `power_entity` set, draw above `power_above` reads as gaming (fan + neon) and below it as powered-but-idle (static glow) — the three-state look upstream drove from its number-mode block. Without one, on == gaming.",
+  docs: "Two states: `active` (default `on`) reads as gaming — fan + neon — and anything else as idle. Upstream drove a third powered-but-idle level from a number-mode block; that needed a watts-as-state override, which this pack deliberately doesn't have.",
   make: rigCard,
 });

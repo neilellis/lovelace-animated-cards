@@ -52,14 +52,11 @@ const vibrationCard = (c) => {
   const speed = c.speed || "0.5s";
   const glow = c.glow || "244, 67, 54";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "red";
   // a binary_sensor can't be toggled — tapping it should open more-info instead
   const sensor = String(c.entity || "").startsWith("binary_sensor.");
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:vibrate",
     layout: "vertical", fill_container: true,
     tap_action: { action: sensor ? "more-info" : "toggle" },
@@ -68,7 +65,7 @@ const vibrationCard = (c) => {
       "ha-tile-icon$": VIB_FX(".container", "9999px"),
       ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --vib-rgb: ${glow};
         --vib-anim: {{ 'vib-shake ${speed} linear infinite' if on else 'none' }};
         --vib-wave: {{ 'vib-shockwave 0.8s ease-out infinite' if on else 'none' }};
@@ -85,7 +82,7 @@ registerKind("vibration", {
   desc: "Icon judders with a shockwave ring while something is vibrating; quiet and dim when still",
   domains: ["binary_sensor", "switch", "input_boolean"],
   deviceClass: ["vibration", "moving", "running"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.active],
   help: {
     glow: "Shockwave colour as R, G, B (default 244, 67, 54)",
     speed: "Shake period, e.g. 0.5s (smaller = more violent)",

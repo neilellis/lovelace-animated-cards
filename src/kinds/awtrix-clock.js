@@ -68,12 +68,9 @@ const AWX_BUSY = (power) => power
 const awtrixCard = (c) => {
   const speed = c.speed || "1.5s";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "cyan";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:clock-digital",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -110,10 +107,9 @@ registerKind("awtrix-clock", {
   label: "Animated Pixel Clock",
   desc: "LED-matrix look — pixel grid, scrolling rainbow marquee and scanline glare (Awtrix/Ulanzi)",
   domains: ["switch", "light", "input_boolean"],
-  schema: [F.icon, F.color, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.speed, F.active],
   help: {
     speed: "Marquee crossing time, e.g. 1.5s",
-    power_entity: "Optional — draw above the threshold means it's actively showing apps; below it the matrix just breathes",
     active: "State that counts as powered on (default: on)",
   },
   make: awtrixCard,

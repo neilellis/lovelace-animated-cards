@@ -43,12 +43,9 @@ const airPurifierCard = (c) => {
   const speed = c.speed || "3s";
   const glow = c.glow || "3, 169, 244";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "light-blue";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:air-purifier",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -57,7 +54,7 @@ const airPurifierCard = (c) => {
       "ha-tile-icon$": AP_FX(".container", "9999px"),
       ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --ap-rgb: ${glow};
         --ap-breath: {{ 'ap-breath ${speed} ease-in-out infinite' if on else 'none' }};
         --ap-flow: {{ 'ap-ripple 2s ease-out infinite' if on else 'none' }};
@@ -72,7 +69,7 @@ registerKind("air-purifier", {
   label: "Animated Air Purifier",
   desc: "Motor hum breath with clean-air rings rippling out while it runs",
   domains: ["switch", "fan", "input_boolean"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.active],
   help: {
     glow: "Clean-air ring colour as R, G, B (default 3, 169, 244)",
     speed: "Motor-hum breath period, e.g. 3s",

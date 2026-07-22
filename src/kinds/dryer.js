@@ -118,7 +118,6 @@ registerKind("dryer", {
   ],
   help: {
     source: "status = a smart dryer's programme sensor; power = a dumb machine on a metering plug",
-    power_entity: "Plug power sensor — the truth source in power mode, a badge suffix in status mode",
     switch_entity: "Plug switch — gives the distinct 'Plug Off' (red) and 'Offline' (grey) states",
     running_entity: "Optional debounced running latch (see docs) — its last_changed drives the elapsed line",
     remaining_entity: "Time-remaining sensor: timestamp, H:MM(:SS) or minutes — all parsed",

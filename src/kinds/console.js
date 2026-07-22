@@ -65,12 +65,9 @@ const consoleCard = (c) => {
   const speed = c.speed || "0.5s";
   const glow = c.glow || "156, 39, 176";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "purple";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:controller",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -79,7 +76,7 @@ const consoleCard = (c) => {
       "ha-tile-icon$": CON_FX(".container", "9999px"),
       ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --con-rgb: ${glow};
         --con-anim: {{ 'con-rumble ${speed} ease-in-out infinite' if on else 'none' }};
         --con-led: {{ 'con-led 1.5s ease-in-out infinite' if on else 'none' }};
@@ -96,12 +93,12 @@ registerKind("console", {
   label: "Animated Games Console",
   desc: "Pad rumbles inside a cycling RGB LED bloom while the console is on",
   domains: ["switch", "input_boolean", "media_player", "binary_sensor"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.active],
   help: {
     glow: "Base bloom colour as R, G, B (default 156, 39, 176)",
     speed: "Rumble period, e.g. 0.5s (smaller = more violent)",
     active: "State that counts as on — for a media_player try `playing` (default: on)",
   },
-  docs: "Loud by design (fast rumble + bright bloom); keep one per view. On a metered plug, set `power_entity`/`power_above` so a console left in standby doesn't rumble all evening.",
+  docs: "Loud by design (fast rumble + bright bloom); keep one per view. A console left in standby will keep rumbling unless its integration reports standby as a distinct state — set `active` to the one that means playing.",
   make: consoleCard,
 });

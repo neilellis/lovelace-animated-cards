@@ -22,12 +22,9 @@ const rgbCard = (c) => {
   const speed = c.speed || "3s";
   const glow = c.glow || "33, 150, 243";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "blue";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:led-on",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -36,7 +33,7 @@ const rgbCard = (c) => {
       "ha-tile-icon$": RGB_FX(".container", "9999px"),
       ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --rgbc-glow: ${glow};
         --rgbc-anim: {{ 'rgb-hue ${speed} linear infinite' if on else 'none' }};
         --rgbc-op: {{ '1' if on else '0.5' }};
@@ -50,7 +47,7 @@ registerKind("rgb", {
   label: "Animated RGB Light",
   desc: "Icon disc cycles the hue wheel while the RGB light/strip is on",
   domains: ["switch", "light", "input_boolean"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.active],
   help: {
     glow: "Halo colour as R, G, B — the hue cycle rotates away from it (default 33, 150, 243)",
     speed: "One full hue rotation, e.g. 3s (smaller = faster)",

@@ -6,7 +6,7 @@
 //
 // Related but distinct: `heater` (10-kinds-base) reuses the halo + ember layers on a *climate*
 // entity keyed off hvac_action; this one is the switch/plug-driven fire itself and adds the
-// flicker. Upstream's number-mode block becomes the shared power_entity/power_above override.
+// flicker. Upstream's number-mode block is dropped; the card reads the entity's own state.
 
 const FIREPLACE_KEYFRAMES = `
       @keyframes flame-core {
@@ -55,7 +55,7 @@ registerKind("fireplace", {
   label: "Animated Fireplace",
   desc: "Flickering flame with a shifting halo and a slow ember bloom while it's lit",
   domains: ["switch", "input_boolean", "light", "climate"],
-  schema: [F.icon, F.color, F.glow, { name: "tip_glow", selector: { text: {} } }, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, { name: "tip_glow", selector: { text: {} } }, F.speed, F.active],
   help: {
     glow: "Flame body colour as R, G, B (default 255, 87, 34)",
     tip_glow: "Flame-tip / ember colour as R, G, B (default 255, 190, 0)",
@@ -68,11 +68,8 @@ registerKind("fireplace", {
     const tip = c.tip_glow || "255, 190, 0";
     const speed = c.speed || "1.4s";
     const active = c.active || "on";
-    const power = powerOf(c);
     return {
-      ...(power
-        ? powerFace(c.entity, c.name, power, color)
-        : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+      ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
       icon: c.icon || "mdi:fire",
       layout: "vertical", fill_container: true,
       tap_action: { action: "toggle" },
@@ -81,7 +78,7 @@ registerKind("fireplace", {
         "ha-tile-icon$": fireplaceIcon(".container", "border-radius: 9999px;"),
         ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --fp-rgb: ${glow};
         --fp-tip: ${tip};
         --fp-anim: {{ 'flame-core ${speed} infinite' if on else 'none' }};

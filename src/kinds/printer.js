@@ -66,12 +66,9 @@ const printerCard = (c) => {
   const speed = c.speed || "1.5s";
   const led = c.led_color || "#00ff00";
   const active = c.active || "on";
-  const power = powerOf(c);
   const color = c.color || "amber";
   return {
-    ...(power
-      ? powerFace(c.entity, c.name, power, color)
-      : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+    ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:printer",
     layout: "vertical", fill_container: true,
     tap_action: { action: "toggle" },
@@ -99,13 +96,12 @@ registerKind("printer", {
   label: "Animated Printer",
   desc: "Shakes and sweeps a scanner beam while printing; colour but still when idle",
   domains: ["switch", "input_boolean", "binary_sensor", "sensor"],
-  schema: [F.icon, F.color, { name: "led_color", selector: { text: {} } }, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, { name: "led_color", selector: { text: {} } }, F.speed, F.active],
   help: {
     led_color: "Status LED colour (CSS colour, default #00ff00)",
     speed: "Scanner-beam sweep duration, e.g. 1.5s",
-    power_above: "Watts above which it counts as printing — try ~30 for an inkjet",
     active: "State that counts as powered on (default: on)",
   },
-  docs: "Two-level card: `active` decides powered vs dead (colour vs monochrome), while shake/beam/LED only run when it's actually printing. Set `power_entity`/`power_above` on a metered plug for that second level; otherwise a printer that is merely on will animate continuously.",
+  docs: "Two-level card: `active` decides powered vs dead (colour vs monochrome), while shake/beam/LED only run when it's actually printing. That second level needs a status entity that distinguishes printing from idle; against a bare on/off switch a printer that is merely on will animate continuously.",
   make: printerCard,
 });

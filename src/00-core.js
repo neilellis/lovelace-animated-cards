@@ -40,8 +40,9 @@ const prune = (o) => {
 // Jinja that renders the entity's friendly name — the default `primary` for template-cards
 const friendly = (entity) => `{{ state_attr('${entity}', 'friendly_name') }}`;
 
-// optional truthful-on power override (see 01-factories.js `onTest`)
-const powerOf = (c) => (c.power_entity ? { entity: c.power_entity, above: c.power_above } : undefined);
+// NB there is deliberately no "derive on/off from a power sensor" option here. It existed until
+// 2026-07-22 and was removed: it was a workaround for a flaky Tuya cloud link (stale states read
+// as a lying switch), and it masked the real fault. A card reflects its entity's state.
 
 const MUSHROOM_COLORS = [
   "primary", "accent", "red", "pink", "purple", "deep-purple", "indigo", "blue",
@@ -58,8 +59,6 @@ const F = {
   active: { name: "active", selector: { text: {} } },
   speed: { name: "speed", selector: { text: {} } },
   variant: (options) => ({ name: "variant", selector: { select: { mode: "dropdown", options } } }),
-  powerEntity: { name: "power_entity", selector: { entity: { domain: "sensor", device_class: "power" } } },
-  powerAbove: { name: "power_above", selector: { number: { min: 0, step: 0.1, mode: "box", unit_of_measurement: "W" } } },
 };
 
 // shared editor helper text (kind defs can override/extend via def.help)
@@ -69,6 +68,4 @@ const HELP = {
   active: "State that counts as active (default: on)",
   speed: "Animation duration, e.g. 1.6s (smaller = faster)",
   variant: "Which of the upstream designs to render",
-  power_entity: "Optional power sensor — 'on' is derived from the draw when the switch state lies",
-  power_above: "Watts above which the device counts as on (default 0.5)",
 };

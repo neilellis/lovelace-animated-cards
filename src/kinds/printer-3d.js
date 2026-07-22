@@ -40,7 +40,7 @@ registerKind("printer-3d", {
     F.icon, F.color, F.glow, F.speed,
     F.variant(["gantry", "progress"]),
     { name: "max_value", selector: { number: { min: 1, step: 1, mode: "box" } } },
-    F.powerEntity, F.powerAbove, F.active,
+    F.active,
   ],
   help: {
     variant: "gantry = switch/plug driven, icon only · progress = bind a 0–100 % progress sensor and get the beam bar + DONE badge",
@@ -124,11 +124,8 @@ registerKind("printer-3d", {
     }
 
     const active = c.active || "on";
-    const power = powerOf(c);
     return {
-      ...(power
-        ? powerFace(c.entity, c.name, power, color)
-        : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+      ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
       icon,
       layout: "vertical", fill_container: true,
       tap_action: { action: "toggle" },
@@ -145,7 +142,7 @@ registerKind("printer-3d", {
       ${PRINTER_KEYFRAMES}`,
         ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         --p3-rgb: ${glow};
         --p3-anim: {{ 'printer-raster ${speed} linear infinite' if on else 'none' }};
         --ig-op: {{ '1' if on else '0.8' }};

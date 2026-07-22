@@ -1,7 +1,7 @@
 // upstream: README #2 - Charger
 // A charging plug: the shape swells in time with the draw, a soft halo breathes and two
 // electric "arcs" flick around it. Upstream's copy-pasted number-mode/state-mode config block
-// collapses into the shared power_entity/power_above override (the truthful-on pattern), and
+// collapses into `power_entity`, which here sets the FILL SPEED (a fast charge fills faster), and
 // its `current_power_w` attribute lookup becomes an optional power sensor — plugs that meter
 // through a companion sensor are far more common than ones exposing that attribute.
 
@@ -52,8 +52,11 @@ registerKind("charger", {
   label: "Animated Charger",
   desc: "Plug that swells, halos and throws electric arcs while charging — pulse rate tracks the draw",
   domains: ["switch", "input_boolean", "light"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed,
+    { name: "power_entity", selector: { entity: { domain: "sensor", device_class: "power" } } },
+    F.active],
   help: {
+    power_entity: "Optional charge-power sensor — a bigger draw fills the battery faster",
     speed: "Base pulse duration (default 1.6s) — with a power sensor the draw shortens it, floored at 0.4s",
     glow: "Arc/halo colour as R, G, B — e.g. 76, 175, 80",
   },
@@ -61,16 +64,13 @@ registerKind("charger", {
     const color = c.color || "green";
     const glow = c.glow || "76, 175, 80";
     const active = c.active || "on";
-    const power = powerOf(c);
     const base = parseFloat(c.speed) || 1.6;
     // watts → pulse rate (upstream's 1.6 - p/800), floored so a fast charger can't strobe
     const dur = c.power_entity
       ? `{% set p = states('${c.power_entity}') | float(0) %}{% set dur = ([0.4, (${base} - p / 800)] | max | round(2)) ~ 's' %}`
       : `{% set dur = '${base}s' %}`;
     return {
-      ...(power
-        ? powerFace(c.entity, c.name, power, color)
-        : { type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color }),
+      ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
       icon: c.icon || "mdi:power-plug",
       layout: "vertical", fill_container: true,
       tap_action: { action: "toggle" },
@@ -79,7 +79,7 @@ registerKind("charger", {
         "ha-tile-icon$": chargerIcon(".container", "border-radius: 9999px;"),
         ".": `${clip}
       ha-card {
-        ${onTest(active, power)}
+        ${onTest(active)}
         ${dur}
         --ch-rgb: ${glow};
         --ch-anim: {{ ('charger-pulse ' ~ dur ~ ' ease-in-out infinite') if on else 'none' }};

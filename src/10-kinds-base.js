@@ -26,18 +26,18 @@ registerKind("led-strip", {
 
 registerKind("switch", {
   label: "Animated Switch / Plug",
-  desc: "Steady glow pulse while on; optional power sensor for plugs whose switch state lies",
+  desc: "Steady glow pulse while on — for plugs, relays and dumb appliances",
   domains: ["switch", "input_boolean", "light"],
-  schema: [F.icon, F.color, F.glow, F.powerEntity, F.powerAbove, F.active],
-  make: (c) => animSwitch(c.entity, c.name, prune({ icon: c.icon, color: c.color, glow: c.glow, active: c.active, power: powerOf(c) })),
+  schema: [F.icon, F.color, F.glow, F.active],
+  make: (c) => animSwitch(c.entity, c.name, prune({ icon: c.icon, color: c.color, glow: c.glow, active: c.active })),
 });
 
 registerKind("fan", {
   label: "Animated Fan",
   desc: "Blades spin while on — for fans wired as a switch/plug",
   domains: ["switch", "fan", "input_boolean"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.powerEntity, F.powerAbove, F.active],
-  make: (c) => animFan(c.entity, c.name, prune({ icon: c.icon, color: c.color, glow: c.glow, speed: c.speed, active: c.active, power: powerOf(c) })),
+  schema: [F.icon, F.color, F.glow, F.speed, F.active],
+  make: (c) => animFan(c.entity, c.name, prune({ icon: c.icon, color: c.color, glow: c.glow, speed: c.speed, active: c.active })),
 });
 
 registerKind("contact", {
