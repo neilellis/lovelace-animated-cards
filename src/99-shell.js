@@ -18,8 +18,10 @@ const schemaFor = (kind, generic) => {
     } } });
   }
   if (def) {
-    rows.push({ name: "entity", required: true,
-      selector: def.entitySelector || { entity: { domain: def.domains } } });
+    // entityOptional kinds (buttons that act on a list, chip rows) still offer the field —
+    // it just isn't required, and drives `active`/more-info when set.
+    rows.push({ name: "entity", required: !def.entityOptional,
+      selector: def.entitySelector || { entity: def.domains ? { domain: def.domains } : {} } });
     rows.push(F.name);
     rows.push(...(def.schema || []));
   }
@@ -78,7 +80,7 @@ class AnimatedCardBase extends HTMLElement {
     const kind = this.constructor.kind || config.kind;
     const def = KINDS[kind];
     if (!def) throw new Error(`animated-card: unknown kind "${kind ?? ""}" — use one of: ${Object.keys(KINDS).sort().join(", ")}`);
-    if (!config.entity) throw new Error(`${def.label}: entity is required`);
+    if (!config.entity && !def.entityOptional) throw new Error(`${def.label}: entity is required`);
     this._config = config;
     this._inner = def.make(config);
     this._build();
@@ -122,6 +124,7 @@ class AnimatedCardBase extends HTMLElement {
 
   static getStubConfig(hass, entities, entitiesFallback) {
     const def = KINDS[this.kind] || KINDS.lamp;
+    if (!def.domains) return this.kind ? {} : { kind: "lamp" };
     const fits = (id) => {
       if (!def.domains.includes(id.split(".")[0])) return false;
       if (!def.deviceClass) return true;

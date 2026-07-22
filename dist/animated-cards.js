@@ -124,6 +124,38 @@ const clip = `
 // is the fix. Don't reintroduce the override — it hid the real fault for weeks.
 const onTest = (active) => `{% set on = states(config.entity) == '${active}' %}`;
 
+// ── WATTS READOUT ─────────────────────────────────────────────────────────────────────────
+// Power-monitored devices show their live draw NEXT TO their on/off state ("On · 489 W"), on by
+// default. Note the split from the removed override above: the STATE is always the entity's own;
+// the watts are a readout beside it. If the two disagree, that's information — it's exactly the
+// disagreement that would have exposed the Tuya rot months earlier.
+//
+// The power sensor is found automatically: any `device_class: power` entity on the SAME device as
+// the switch. Pass `powerEntity` to override (plugs whose sensor lives on another device), or
+// `showPower: false` for a bare state line. A device with no power sensor just reads "On"/"Off".
+// Mushroom's entity-card can't take a computed secondary, so these become template-cards — hence
+// the `ha-tile-icon$` mirrors in the factories below (see TWO ICON STRUCTURES).
+// NB the discovery loop writes through a `namespace` — a plain `{% set %}` inside a `{% for %}`
+// is scoped to the loop body and would always come back -1.
+const wattsOf = (powerEntity) => powerEntity
+  ? `{% set ns = namespace(w = states('${powerEntity}') | float(-1)) %}`
+  : `{% set ns = namespace(w = -1) %}{% set d = device_id(config.entity) %}` +
+    `{% if d %}{% for e in device_entities(d) if state_attr(e, 'device_class') == 'power' %}` +
+    `{% set ns.w = states(e) | float(-1) %}{% endfor %}{% endif %}`;
+
+const wattFace = (entity, name, color, active, powerEntity) => ({
+  type: "custom:mushroom-template-card",
+  entity,
+  primary: name || `{{ state_attr('${entity}', 'friendly_name') }}`,
+  // `float(-1)` keeps an `unavailable` sensor from reading as a plausible 0 W.
+  secondary: `${wattsOf(powerEntity)}{% set on = is_state(config.entity, '${active}') %}` +
+    `{% if states(config.entity) in ['unavailable', 'unknown'] %}Unavailable` +
+    `{% else %}{{ 'On' if on else 'Off' }}{% if ns.w >= 0 %} · {{ ns.w | round(0) }} W{% endif %}{% endif %}`,
+  // template-cards apply icon_color unconditionally, unlike entity-cards which grey an off icon
+  // by state — so template it, or an idle device sits there looking live.
+  icon_color: `{{ '${color}' if is_state(config.entity, '${active}') else 'disabled' }}`,
+});
+
 // ── TWO ICON STRUCTURES (Mushroom on HA 2026.7) ──────────────────────────────────────────
 // mushroom-entity-card / -light-card / -media-player-card still render the classic
 // `mushroom-shape-icon` (our `mushroom-shape-icon$` shadow blocks bind). But
@@ -172,8 +204,10 @@ const animLedStrip = (entity, name, { icon = "mdi:led-strip-variant", color = "b
 // so the glow colour is a build-time `glow` rgb string, default amber). For smart-plug devices
 // (fan, super-bright light, monitor power) where animLamp's brightness/colour controls don't
 // apply. Same instant-paint contract as animLedStrip: static keyframes, on/off via --shape-animation.
-const animSwitch = (entity, name, { icon = "mdi:power-socket", color = "amber", glow = "255, 193, 7", active = "on" } = {}) => ({
-  type: "custom:mushroom-entity-card", entity, name, icon_color: color,
+const animSwitch = (entity, name, { icon = "mdi:power-socket", color = "amber", glow = "255, 193, 7", active = "on", showPower = true, powerEntity = null } = {}) => ({
+  ...(showPower
+    ? wattFace(entity, name, color, active, powerEntity)
+    : { type: "custom:mushroom-entity-card", entity, name, icon_color: color }),
   icon,
   layout: "vertical", fill_container: true,
   tap_action: { action: "toggle" },
@@ -214,8 +248,10 @@ const animSwitch = (entity, name, { icon = "mdi:power-socket", color = "amber", 
 
 // Fan — the icon (blades) SPINS while on, with a soft steady glow; idle = still + dimmed. For a
 // fan wired as a `switch` (so Mushroom's native fan-card spin can't bind). `speed` tunes the spin.
-const animFan = (entity, name, { icon = "mdi:fan", color = "teal", glow = "0, 200, 180", active = "on", speed = "1.6s" } = {}) => ({
-  type: "custom:mushroom-entity-card", entity, name, icon_color: color,
+const animFan = (entity, name, { icon = "mdi:fan", color = "teal", glow = "0, 200, 180", active = "on", speed = "1.6s", showPower = true, powerEntity = null } = {}) => ({
+  ...(showPower
+    ? wattFace(entity, name, color, active, powerEntity)
+    : { type: "custom:mushroom-entity-card", entity, name, icon_color: color }),
   icon,
   layout: "vertical", fill_container: true,
   tap_action: { action: "toggle" },
@@ -946,18 +982,44 @@ registerKind("led-strip", {
 
 registerKind("switch", {
   label: "Animated Switch / Plug",
-  desc: "Steady glow pulse while on — for plugs, relays and dumb appliances",
+  desc: "Steady glow pulse while on, with the plug's live wattage beside the state",
   domains: ["switch", "input_boolean", "light"],
-  schema: [F.icon, F.color, F.glow, F.active],
-  make: (c) => animSwitch(c.entity, c.name, prune({ icon: c.icon, color: c.color, glow: c.glow, active: c.active })),
+  schema: [F.icon, F.color, F.glow, F.active,
+    // Watts are a READOUT beside the state, never the state itself (see 01-factories.js). The
+    // sensor is auto-found on the switch's own device; both rows are escape hatches. `hide_power`
+    // is inverted so an unset ha-form boolean (renders OFF) means the default: show.
+    { name: "power_entity", selector: { entity: { domain: "sensor", device_class: "power" } } },
+    { name: "hide_power", selector: { boolean: {} } },
+  ],
+  help: {
+    power_entity: "Override the auto-found power sensor (readout only — never the on/off state)",
+    hide_power: "Hide the live wattage from the card's second line",
+  },
+  make: (c) => animSwitch(c.entity, c.name, prune({
+    icon: c.icon, color: c.color, glow: c.glow, active: c.active,
+    powerEntity: c.power_entity, showPower: c.hide_power ? false : undefined,
+  })),
 });
 
 registerKind("fan", {
   label: "Animated Fan",
-  desc: "Blades spin while on — for fans wired as a switch/plug",
+  desc: "Blades spin while on, with the plug's live wattage beside the state",
   domains: ["switch", "fan", "input_boolean"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.active],
-  make: (c) => animFan(c.entity, c.name, prune({ icon: c.icon, color: c.color, glow: c.glow, speed: c.speed, active: c.active })),
+  schema: [F.icon, F.color, F.glow, F.speed, F.active,
+    // Watts are a READOUT beside the state, never the state itself (see 01-factories.js). The
+    // sensor is auto-found on the switch's own device; both rows are escape hatches. `hide_power`
+    // is inverted so an unset ha-form boolean (renders OFF) means the default: show.
+    { name: "power_entity", selector: { entity: { domain: "sensor", device_class: "power" } } },
+    { name: "hide_power", selector: { boolean: {} } },
+  ],
+  help: {
+    power_entity: "Override the auto-found power sensor (readout only — never the on/off state)",
+    hide_power: "Hide the live wattage from the card's second line",
+  },
+  make: (c) => animFan(c.entity, c.name, prune({
+    icon: c.icon, color: c.color, glow: c.glow, speed: c.speed, active: c.active,
+    powerEntity: c.power_entity, showPower: c.hide_power ? false : undefined,
+  })),
 });
 
 registerKind("contact", {
@@ -8573,8 +8635,10 @@ const schemaFor = (kind, generic) => {
     } } });
   }
   if (def) {
-    rows.push({ name: "entity", required: true,
-      selector: def.entitySelector || { entity: { domain: def.domains } } });
+    // entityOptional kinds (buttons that act on a list, chip rows) still offer the field —
+    // it just isn't required, and drives `active`/more-info when set.
+    rows.push({ name: "entity", required: !def.entityOptional,
+      selector: def.entitySelector || { entity: def.domains ? { domain: def.domains } : {} } });
     rows.push(F.name);
     rows.push(...(def.schema || []));
   }
@@ -8633,7 +8697,7 @@ class AnimatedCardBase extends HTMLElement {
     const kind = this.constructor.kind || config.kind;
     const def = KINDS[kind];
     if (!def) throw new Error(`animated-card: unknown kind "${kind ?? ""}" — use one of: ${Object.keys(KINDS).sort().join(", ")}`);
-    if (!config.entity) throw new Error(`${def.label}: entity is required`);
+    if (!config.entity && !def.entityOptional) throw new Error(`${def.label}: entity is required`);
     this._config = config;
     this._inner = def.make(config);
     this._build();
@@ -8677,6 +8741,7 @@ class AnimatedCardBase extends HTMLElement {
 
   static getStubConfig(hass, entities, entitiesFallback) {
     const def = KINDS[this.kind] || KINDS.lamp;
+    if (!def.domains) return this.kind ? {} : { kind: "lamp" };
     const fits = (id) => {
       if (!def.domains.includes(id.split(".")[0])) return false;
       if (!def.deviceClass) return true;

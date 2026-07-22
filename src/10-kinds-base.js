@@ -26,18 +26,44 @@ registerKind("led-strip", {
 
 registerKind("switch", {
   label: "Animated Switch / Plug",
-  desc: "Steady glow pulse while on — for plugs, relays and dumb appliances",
+  desc: "Steady glow pulse while on, with the plug's live wattage beside the state",
   domains: ["switch", "input_boolean", "light"],
-  schema: [F.icon, F.color, F.glow, F.active],
-  make: (c) => animSwitch(c.entity, c.name, prune({ icon: c.icon, color: c.color, glow: c.glow, active: c.active })),
+  schema: [F.icon, F.color, F.glow, F.active,
+    // Watts are a READOUT beside the state, never the state itself (see 01-factories.js). The
+    // sensor is auto-found on the switch's own device; both rows are escape hatches. `hide_power`
+    // is inverted so an unset ha-form boolean (renders OFF) means the default: show.
+    { name: "power_entity", selector: { entity: { domain: "sensor", device_class: "power" } } },
+    { name: "hide_power", selector: { boolean: {} } },
+  ],
+  help: {
+    power_entity: "Override the auto-found power sensor (readout only — never the on/off state)",
+    hide_power: "Hide the live wattage from the card's second line",
+  },
+  make: (c) => animSwitch(c.entity, c.name, prune({
+    icon: c.icon, color: c.color, glow: c.glow, active: c.active,
+    powerEntity: c.power_entity, showPower: c.hide_power ? false : undefined,
+  })),
 });
 
 registerKind("fan", {
   label: "Animated Fan",
-  desc: "Blades spin while on — for fans wired as a switch/plug",
+  desc: "Blades spin while on, with the plug's live wattage beside the state",
   domains: ["switch", "fan", "input_boolean"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.active],
-  make: (c) => animFan(c.entity, c.name, prune({ icon: c.icon, color: c.color, glow: c.glow, speed: c.speed, active: c.active })),
+  schema: [F.icon, F.color, F.glow, F.speed, F.active,
+    // Watts are a READOUT beside the state, never the state itself (see 01-factories.js). The
+    // sensor is auto-found on the switch's own device; both rows are escape hatches. `hide_power`
+    // is inverted so an unset ha-form boolean (renders OFF) means the default: show.
+    { name: "power_entity", selector: { entity: { domain: "sensor", device_class: "power" } } },
+    { name: "hide_power", selector: { boolean: {} } },
+  ],
+  help: {
+    power_entity: "Override the auto-found power sensor (readout only — never the on/off state)",
+    hide_power: "Hide the live wattage from the card's second line",
+  },
+  make: (c) => animFan(c.entity, c.name, prune({
+    icon: c.icon, color: c.color, glow: c.glow, speed: c.speed, active: c.active,
+    powerEntity: c.power_entity, showPower: c.hide_power ? false : undefined,
+  })),
 });
 
 registerKind("contact", {
