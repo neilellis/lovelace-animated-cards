@@ -52,11 +52,11 @@ const adwStatePre = (conn, app, ph) => `
           {% set ph = states('${ph}') %}
           {% set phlive = ph not in ['Unavailable', 'unavailable', 'unknown', 'none', ''] %}
           {% set offline = conn in ['unavailable', 'unknown', 'Disconnected', 'disconnected'] %}
-          {% set fault = offline or app in ['alarm', 'error', 'failure', 'fault'] %}
-          {% set paused = app in ['paused', 'pause'] %}
-          {% set delayed = app in ['delayed start', 'delayedstart', 'delayed'] %}
-          {% set finished = app in ['end of cycle', 'endofcycle', 'finished', 'cycle complete'] %}
-          {% set running = not fault and not paused and (phlive or app in ['running', 'washing']) %}`;
+          {% set fault = not offline and app in ['alarm', 'error', 'failure', 'fault'] %}
+          {% set paused = not offline and app in ['paused', 'pause'] %}
+          {% set delayed = not offline and app in ['delayed start', 'delayedstart', 'delayed'] %}
+          {% set finished = not offline and app in ['end of cycle', 'endofcycle', 'finished', 'cycle complete'] %}
+          {% set running = not offline and not fault and not paused and (phlive or app in ['running', 'washing']) %}`;
 
 // ── the door window (LEFT half of the hero) — the washer porthole's dishwasher sibling ────
 // root = white rim + dark glass + reflection, with STATIC plates (light discs racked low in
@@ -110,6 +110,57 @@ const adwGlass = (root, size) => `
         0%   { box-shadow: 0 0 0 2px #cfd4d8, inset 0 0 14px rgba(0, 0, 0, 0.7), 0 0 8px 2px rgba(var(--adw-rgb, 120, 130, 140), 0.3); }
         50%  { box-shadow: 0 0 0 2px #cfd4d8, inset 0 0 14px rgba(0, 0, 0, 0.7), 0 0 24px 9px rgba(var(--adw-rgb, 120, 130, 140), 0.85); }
         100% { box-shadow: 0 0 0 2px #cfd4d8, inset 0 0 14px rgba(0, 0, 0, 0.7), 0 0 8px 2px rgba(var(--adw-rgb, 120, 130, 140), 0.3); }
+      }`;
+
+// ── the rinse-aid tank face — a glassy rounded reservoir filled with cyan fluid to
+// `--adw-fill` (level/6). ::before = the liquid body, an oversized rounded blob that slowly
+// rotates so its surface WAVES; ::after = bubbles drifting up through the liquid. Same slosh
+// trick as the glass door, reshaped into a bottle. ──────────────────────────────────────────
+const adwFluidFace = (root, size) => `
+      ${root} {
+        ${size}
+        border-radius: 9px !important;
+        position: relative;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 32%),
+          linear-gradient(180deg, #eef2f5 0%, #e0e6ea 100%) !important;
+        border: 2px solid #cdd5da !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.14), inset 0 -1px 2px rgba(255, 255, 255, 0.7) !important;
+        opacity: var(--adw-op, 1);
+      }
+      ${root}::before {
+        content: '';
+        position: absolute;
+        left: -50%;
+        width: 200%; height: 200%;
+        top: calc(100% - var(--adw-fill, 0%));
+        background: linear-gradient(180deg, rgba(var(--adw-rgb, 0, 172, 193), 0.92), rgba(var(--adw-rgb, 0, 172, 193), 0.72));
+        border-radius: 43%;
+        transition: top 0.9s cubic-bezier(.4, 0, .2, 1);
+        animation: var(--adw-wave, adw-wave 6s linear infinite);
+        z-index: 0;
+      }
+      ${root}::after {
+        content: '';
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        height: var(--adw-fill, 0%);
+        background-image:
+          radial-gradient(circle 2px at 28% 100%, rgba(255, 255, 255, 0.8) 0 2px, transparent 3px),
+          radial-gradient(circle 1.5px at 62% 100%, rgba(255, 255, 255, 0.7) 0 1.5px, transparent 2.5px),
+          radial-gradient(circle 1.5px at 44% 100%, rgba(255, 255, 255, 0.6) 0 1.5px, transparent 2.5px);
+        background-repeat: repeat-y;
+        background-size: 100% 40px, 100% 52px, 100% 46px;
+        transition: height 0.9s cubic-bezier(.4, 0, .2, 1);
+        animation: var(--adw-bubbles, adw-bubbles 3.4s linear infinite);
+        z-index: 1;
+        pointer-events: none;
+      }
+      @keyframes adw-wave { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      @keyframes adw-bubbles {
+        0%   { background-position: 0 0, 0 6px, 0 3px; opacity: 0.85; }
+        100% { background-position: 0 -40px, 0 -52px, 0 -46px; opacity: 0.85; }
       }`;
 
 // ── an embossed command button firing button.press (the washer's awButton fires
@@ -180,6 +231,64 @@ const adwSelDial = (entity, conn, opts, label, hash) => ({
         --card-primary-font-weight: 600;
       }`,
   } },
+});
+
+// ── the rinse-aid fluid gauge: a vertical tile (like the dials) whose icon slot is a tank
+// filled to level/6 with a waving cyan fluid; tap → the 0–6 pop-over at `hash` ─────────────
+const adwFluidGauge = (rinse, conn, rgb, hash) => ({
+  type: "custom:mushroom-template-card",
+  entity: rinse,
+  primary: `{% set v = states('${rinse}') %}{% if v in ['unavailable', 'unknown'] %}—{% else %}Level {{ v }}{% endif %}`,
+  icon: "mdi:cup-water",
+  layout: "vertical",
+  tap_action: { action: "navigate", navigation_path: hash },
+  card_mod: { style: {
+    "ha-tile-icon$": adwFluidFace(".container", "width: 48px !important; height: 48px !important;"),
+    "mushroom-shape-icon$": adwFluidFace(".shape", "--icon-size: 48px !important; width: var(--icon-size) !important; height: var(--icon-size) !important;"),
+    ".": `
+      ha-tile-icon { --tile-icon-size: 48px; width: 48px; height: 48px; }
+      mushroom-shape-icon { --icon-size: 48px; }
+      ha-state-icon, ha-icon { display: none !important; }
+      ha-tile-info { padding: 0 !important; width: 100% !important; box-sizing: border-box; }
+      ha-tile-info [slot="primary"] { display: block !important; width: 100% !important; white-space: normal !important; text-overflow: clip !important; overflow: visible !important; text-align: center !important; line-height: 1.15 !important; }
+      ha-card {
+        ${adwDisabled(conn)}
+        {% set lvl = states('${rinse}') | int(0) %}
+        --adw-fill: {{ (lvl / 6 * 100) | round(0) }}%;
+        --adw-rgb: ${rgb};
+        ${AW_FLAT}
+        --card-primary-font-size: 0.8rem;
+        --card-primary-font-weight: 600;
+      }`,
+  } },
+});
+
+// ── the end-of-cycle SOUND as a toggle: it's a 2-option select ("No Sound"/"Short Sound"),
+// so `select.select_next` (cycle) flips it. Styled to match the feature toggles. ────────────
+const adwSoundToggle = (sound, conn) => ({
+  type: "custom:mushroom-template-card",
+  entity: sound,
+  primary: "Sound",
+  secondary: `{% if is_state('${sound}', 'Short Sound') %}On{% else %}Off{% endif %}`,
+  icon: `{% if is_state('${sound}', 'Short Sound') %}mdi:volume-high{% else %}mdi:volume-off{% endif %}`,
+  icon_color: `{% if is_state('${sound}', 'Short Sound') %}orange{% else %}disabled{% endif %}`,
+  layout: "horizontal",
+  tap_action: { action: "call-service", service: "select.select_next", target: { entity_id: sound }, data: { cycle: true } },
+  card_mod: { style: { ".": `
+      ha-state-icon { display: inline-block; animation: var(--adw-opt, none); }
+      @keyframes adw-opt-breathe {
+        0%, 100% { transform: scale(1); filter: brightness(1); }
+        50%      { transform: scale(1.12); filter: brightness(1.25); }
+      }
+      ha-card {
+        ${adwDisabled(conn)}
+        {% if is_state('${sound}', 'Short Sound') %}--adw-opt: adw-opt-breathe 3s ease-in-out infinite;{% endif %}
+        ${AW_FLAT}
+        --icon-size: 32px;
+        --spacing: 6px;
+        --card-primary-font-size: 0.85rem;
+        --card-secondary-font-size: 0.8rem;
+      }` } },
 });
 
 // ── ONE cell of a segmented bar — the washer's awSegCell generalised to a service:
@@ -388,14 +497,16 @@ const adwMake = (c) => {
         ha-tile-info, mushroom-state-info { display: none !important; }
         ha-card {
           ${statePre}
-          {% if fault %}{% set rgb = '244, 67, 54' %}
+          {% if offline %}{% set rgb = '120, 130, 140' %}
+          {% elif fault %}{% set rgb = '244, 67, 54' %}
           {% elif running %}{% set rgb = '3, 169, 244' %}
           {% elif paused %}{% set rgb = '255, 152, 0' %}
           {% elif delayed %}{% set rgb = '100, 170, 255' %}
           {% elif finished %}{% set rgb = '76, 175, 80' %}
           {% else %}{% set rgb = '96, 135, 170' %}{% endif %}
           --adw-rgb: {{ rgb }};
-          {% if fault %}--adw-pulse: adw-pulse 0.8s ease-in-out infinite; --adw-arm: none; --adw-slosh: none; --adw-water: 26%; --adw-op: 1;
+          {% if offline %}--adw-pulse: none; --adw-arm: none; --adw-slosh: none; --adw-water: 8%; --adw-op: 0.4;
+          {% elif fault %}--adw-pulse: adw-pulse 0.8s ease-in-out infinite; --adw-arm: none; --adw-slosh: none; --adw-water: 26%; --adw-op: 1;
           {% elif running %}--adw-pulse: adw-pulse 2s ease-in-out infinite; --adw-arm: adw-arm 1.4s linear infinite; --adw-slosh: adw-slosh 5s linear infinite; --adw-water: 30%; --adw-op: 1;
           {% elif paused %}--adw-pulse: adw-pulse 3.5s ease-in-out infinite; --adw-arm: adw-arm 8s linear infinite; --adw-slosh: adw-slosh 12s linear infinite; --adw-water: 30%; --adw-op: 0.95;
           {% elif delayed %}--adw-pulse: adw-pulse 4s ease-in-out infinite; --adw-arm: none; --adw-slosh: none; --adw-water: 14%; --adw-op: 1;
@@ -420,8 +531,8 @@ const adwMake = (c) => {
     chips: [
       // machine-state glyph (single fault glyph on offline/error — the fault lives here + EEEE)
       { type: "template",
-        icon: `${statePre}{% if fault %}mdi:alert{% elif running %}mdi:sync{% elif paused %}mdi:pause-circle{% elif delayed %}mdi:timer-sand{% elif finished %}mdi:check-circle{% else %}mdi:power{% endif %}`,
-        icon_color: `${statePre}{% if fault %}red{% elif running %}light-blue{% elif paused %}orange{% elif delayed %}blue{% elif finished %}green{% else %}grey{% endif %}`,
+        icon: `${statePre}{% if offline %}mdi:lan-disconnect{% elif fault %}mdi:alert{% elif running %}mdi:sync{% elif paused %}mdi:pause-circle{% elif delayed %}mdi:timer-sand{% elif finished %}mdi:check-circle{% else %}mdi:power{% endif %}`,
+        icon_color: `${statePre}{% if offline %}grey{% elif fault %}red{% elif running %}light-blue{% elif paused %}orange{% elif delayed %}blue{% elif finished %}green{% else %}grey{% endif %}`,
         tap_action: { action: "more-info", entity: conn } },
       // door open / closed
       { type: "template",
@@ -435,7 +546,7 @@ const adwMake = (c) => {
         tap_action: { action: "more-info", entity: eco } },
       // cycle line: short programme name + live phase, printed small on the screen
       { type: "template",
-        content: `{% set pmap = {'Auto': 'AUTO', 'Eco': 'ECO', 'Intensive': 'INTNSV', 'Machine Care': 'CARE', 'Normal90': 'NORM90', 'Quick30': 'QCK30', 'Quick60': 'QCK60', 'Rinse': 'RINSE'} %}{% set p = states('${prog}') %}{% set ph = states('${ph}') %}{% if p in pmap %}{{ pmap[p] }}{% endif %}{% if ph not in ['Unavailable', 'unavailable', 'unknown', 'none', ''] %}·{{ ph | upper | truncate(8, true, '') }}{% endif %}`,
+        content: `${statePre}{% if offline %}DISCONNECTED{% else %}{% set pmap = {'Auto': 'AUTO', 'Eco': 'ECO', 'Intensive': 'INTNSV', 'Machine Care': 'CARE', 'Normal90': 'NORM90', 'Quick30': 'QCK30', 'Quick60': 'QCK60', 'Rinse': 'RINSE'} %}{% set p = states('${prog}') %}{% set cph = states('${ph}') %}{% if p in pmap %}{{ pmap[p] }}{% endif %}{% if cph not in ['Unavailable', 'unavailable', 'unknown', 'none', ''] %}·{{ cph | upper | truncate(8, true, '') }}{% endif %}{% endif %}`,
         tap_action: { action: "more-info", entity: prog } },
     ],
     card_mod: { style: `
@@ -444,7 +555,8 @@ const adwMake = (c) => {
         ${statePre}
         {% set mins = states('${tte}') | float(0) | int %}
         {% set clock = (mins // 60) ~ ':' ~ ('%02d' | format(mins % 60)) %}
-        {% if fault %}{% set led = 'EEEE' %}{% set ledc = '#ff6b6b' %}{% set leda = 'adw-led-blink 0.8s steps(1) infinite' %}{% set glow = '255, 90, 90' %}
+        {% if offline %}{% set led = '----' %}{% set ledc = '#5d7a6e' %}{% set leda = 'none' %}{% set glow = '70, 90, 110' %}
+        {% elif fault %}{% set led = 'EEEE' %}{% set ledc = '#ff6b6b' %}{% set leda = 'adw-led-blink 0.8s steps(1) infinite' %}{% set glow = '255, 90, 90' %}
         {% elif running %}{% set led = clock %}{% set ledc = '#7cfc98' %}{% set leda = 'none' %}{% set glow = '80, 240, 130' %}
         {% elif paused %}{% set led = clock %}{% set ledc = '#ffc66d' %}{% set leda = 'adw-led-blink 1.4s steps(1) infinite' %}{% set glow = '255, 180, 80' %}
         {% elif delayed %}{% set led = clock %}{% set ledc = '#8fc7ff' %}{% set leda = 'none' %}{% set glow = '110, 170, 255' %}
@@ -472,7 +584,7 @@ const adwMake = (c) => {
         --adw-led-text: "{{ led }}";
         --adw-led-color: {{ ledc }};
         --adw-led-anim: {{ leda }};
-        --adw-cycle-color: {% if fault or running or paused or delayed %}#9fb4ad{% else %}#556158{% endif %};
+        --adw-cycle-color: {% if offline or fault or running or paused or delayed %}#9fb4ad{% else %}#556158{% endif %};
         filter: drop-shadow(0 0 4px rgba({{ glow }}, 0.5));
       }
       .chip-container { flex-wrap: nowrap !important; }
@@ -553,6 +665,7 @@ const adwMake = (c) => {
   const progHash = `#adw-prog-${base}`;
   const hardHash = `#adw-hard-${base}`;
   const delayHash = `#adw-delay-${base}`;
+  const rinseHash = `#adw-rinse-${base}`;
 
   const progLabel = `{% set m = {'Auto': 'Auto', 'Eco': 'Eco', 'Intensive': 'Intensive', 'Machine Care': 'Care', 'Normal90': 'Normal 90', 'Quick30': 'Quick 30', 'Quick60': 'Quick 60', 'Rinse': 'Rinse'} %}{% set v = states('${prog}') %}{{ m[v] if v in m else '—' }}`;
   const progDial = adwSelDial(prog, conn, ADW_PROGS, progLabel, progHash);
@@ -569,7 +682,7 @@ const adwMake = (c) => {
       "Stop the dishwasher? The programme will be cancelled."),
   ] };
 
-  // ── settings: water-hardness + delay-start dials, then rinse-aid | sound segmented bars ──
+  // ── settings: water-hardness + delay-start dials + the rinse-aid fluid gauge ──
   const hardLabel = `{% set v = states('${hard}') %}{% if v in ['unavailable', 'unknown'] %}—{% else %}{{ v }}{% endif %}`;
   const hardDial = adwSelDial(hard, conn, ADW_HARD, hardLabel, hardHash);
   const hardPopup = awPopup(hardHash, "Water hardness", "mdi:water", hard, ADW_HARD_RGB,
@@ -606,25 +719,12 @@ const adwMake = (c) => {
   };
   const delayPopup = adwNumPopup(delayHash, "Delay start", "mdi:timer-sand", delay, ADW_DELAY_RGB, ADW_DELAYS);
 
-  const rinseSeg = adwSeg(rinse, conn, ADW_RINSE_RGB,
-    [0, 1, 2, 3, 4, 5, 6].map((n) => ({ value: n, glyph: String(n) })), true);
-  const soundSeg = adwSeg(sound, conn, ADW_SOUND_RGB, [
-    { value: "No Sound", glyph: "○" },
-    { value: "Short Sound", glyph: "♪" },
-  ], false);
+  // rinse aid is a fluid tank filled to level/6, tap → the 0–6 pop-over
+  const rinseGauge = adwFluidGauge(rinse, conn, ADW_RINSE_RGB, rinseHash);
+  const rinsePopup = adwNumPopup(rinseHash, "Rinse aid level", "mdi:cup-water", rinse, ADW_RINSE_RGB,
+    [0, 1, 2, 3, 4, 5, 6].map((n) => ({ value: n, label: n === 0 ? "0 · Off" : String(n) })));
 
-  const segBlock = {
-    type: "vertical-stack",
-    cards: [
-      { type: "horizontal-stack", cards: [
-        awSegLabel("Rinse aid", ADW_RINSE_RGB, 10),
-        awSegLabel("Sound", ADW_SOUND_RGB, 10),
-      ] },
-      { type: "horizontal-stack", cards: [rinseSeg, soundSeg] },
-    ],
-  };
-
-  // ── option toggles ───────────────────────────────────────────────────────────────────────
+  // ── option toggles (sound folds in here — it's a 2-option select flipped by select_next) ──
   const toggles1 = { type: "horizontal-stack", cards: [
     adwToggle(`switch.${base}_userselections_glasscareoption`, conn, "Glass care", "mdi:glass-wine", "cyan"),
     adwToggle(`switch.${base}_userselections_sanitizeoption`, conn, "Sanitize", "mdi:water-thermometer", "red"),
@@ -633,6 +733,7 @@ const adwMake = (c) => {
   const toggles2 = { type: "horizontal-stack", cards: [
     adwToggle(`switch.${base}_userselections_extrasilentoption`, conn, "Extra silent", "mdi:volume-off", "blue-grey"),
     adwToggle(`switch.${base}_userselections_autodooropener`, conn, "Auto door", "mdi:door-open", "green"),
+    adwSoundToggle(sound, conn),
   ] };
 
   // pop-overs render nothing inline but still occupy stack slots — they all sit at the END
@@ -641,11 +742,10 @@ const adwMake = (c) => {
     hero,
     scoreChips,
     awGap(2, controls),
-    awGap(14, { type: "horizontal-stack", cards: [hardDial, delayDial] }),
-    segBlock,
+    awGap(14, { type: "horizontal-stack", cards: [hardDial, delayDial, rinseGauge] }),
     awGap(14, toggles1),
     awGap(4, toggles2),
-    progPopup, hardPopup, delayPopup,
+    progPopup, hardPopup, delayPopup, rinsePopup,
   ];
 
   // One machine, one fascia: the wrapper's white gradient is the ONLY painted surface —
@@ -682,11 +782,12 @@ exposes sibling entities on one id prefix (\`sensor.<base>_connectivitystate\`,
 \`button.<base>_executecommand[_N]\`, …). Pick any of the machine's sensors; everything else is
 derived from the prefix. The fascia carries a glass door window with a spinning spray arm, a
 seven-segment LED (time to end; the selected programme's duration dimmed while idle; a red
-blinking "EEEE" when offline or faulted), a programme dial + water-hardness and delay-start
-dials that each open a Bubble-Card bottom pop-over, embossed Start/Pause/Resume/Stop command
-buttons (soft-disabled when the appliance's remote control isn't Enabled), rinse-aid and
-end-of-cycle-sound segmented bars, and the option toggles (glass care, sanitize, extra power,
-extra silent, auto door opener). NB \`sensor.<base>_appliancestate\` ships registry-disabled by
+blinking "EEEE" on a genuine appliance fault, a calm "----" + DISCONNECTED when merely offline),
+a programme dial + water-hardness and delay-start dials that each open a Bubble-Card bottom
+pop-over, embossed Start/Pause/Resume/Stop command buttons (soft-disabled when the appliance's
+remote control isn't Enabled), a rinse-aid fluid gauge (a tank filled to level/6 with a waving
+cyan liquid; tap for the 0–6 pop-over), and the option toggles (glass care, sanitize, extra
+power, extra silent, auto door opener, end-of-cycle sound). NB \`sensor.<base>_appliancestate\` ships registry-disabled by
 the integration — the card composes its state from connectivity + cycle phase, and picks the
 richer states (paused / delayed start / end of cycle) up automatically if you enable it.`,
   make: (c) => adwMake(c),

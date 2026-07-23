@@ -153,11 +153,12 @@ exposes sibling entities on one id prefix (`sensor.<base>_connectivitystate`,
 `button.<base>_executecommand[_N]`, …). Pick any of the machine's sensors; everything else is
 derived from the prefix. The fascia carries a glass door window with a spinning spray arm, a
 seven-segment LED (time to end; the selected programme's duration dimmed while idle; a red
-blinking "EEEE" when offline or faulted), a programme dial + water-hardness and delay-start
-dials that each open a Bubble-Card bottom pop-over, embossed Start/Pause/Resume/Stop command
-buttons (soft-disabled when the appliance's remote control isn't Enabled), rinse-aid and
-end-of-cycle-sound segmented bars, and the option toggles (glass care, sanitize, extra power,
-extra silent, auto door opener). NB `sensor.<base>_appliancestate` ships registry-disabled by
+blinking "EEEE" on a genuine appliance fault, a calm "----" + DISCONNECTED when merely offline),
+a programme dial + water-hardness and delay-start dials that each open a Bubble-Card bottom
+pop-over, embossed Start/Pause/Resume/Stop command buttons (soft-disabled when the appliance's
+remote control isn't Enabled), a rinse-aid fluid gauge (a tank filled to level/6 with a waving
+cyan liquid; tap for the 0–6 pop-over), and the option toggles (glass care, sanitize, extra
+power, extra silent, auto door opener, end-of-cycle sound). NB `sensor.<base>_appliancestate` ships registry-disabled by
 the integration — the card composes its state from connectivity + cycle phase, and picks the
 richer states (paused / delayed start / end of cycle) up automatically if you enable it.
 
