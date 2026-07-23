@@ -75,6 +75,9 @@ there the draw is the only signal available.
 <!-- CARD_INDEX -->
 | Card | Type | Extra options | What it does |
 |---|---|---|---|
+| **Advanced Washing Machine (large)** | `custom:anim-advanced-washer-card` | — | The whole machine on one white fascia — porthole, LED display, programme dial, Start/Pause/Stop, every setting, toggle and usage stat |
+| **Advanced Washing Machine (medium)** | `custom:anim-advanced-washer-medium-card` | — | Porthole hero + LED display, programme dial and Start/Pause/Stop, temperature & spin, and the everyday toggles |
+| **Advanced Washing Machine (small)** | `custom:anim-advanced-washer-small-card` | — | The animated porthole hero alone — LED time display, status sentence, progress bar, warnings |
 | **Animated 3D Printer** | `custom:anim-printer-3d-card` | `icon` `color` `glow` `speed` `variant` `max_value` `active` | Nozzle rasters layer by layer while printing — optional progress beam and DONE badge |
 | **Animated Air Purifier** | `custom:anim-air-purifier-card` | `icon` `color` `glow` `speed` `active` | Motor hum breath with clean-air rings rippling out while it runs |
 | **Animated Air Quality** | `custom:anim-air-quality-card` | `variant` `icon` `graph` `graph_hours` | AQI tile banded good→hazardous, glow + halo escalating with severity; optional 24 h sparkline |
@@ -139,7 +142,49 @@ there the draw is the only signal available.
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
-Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 63 designs above.
+Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 66 designs above.
+
+<details><summary><b>Advanced Washing Machine (large)</b> — notes</summary>
+
+Built for Tuya washing machines / washer-dryers whose integration exposes
+sibling entities on one id prefix (`sensor.<base>_machine_status`, `select.<base>_actions`,
+`select.<base>_temperature`, `switch.<base>_prewash`, …). Pick the machine-status sensor;
+everything else is derived. The card is drawn as the machine's own white fascia: a porthole
+with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (or the F-code on
+a fault, blinking when paused), a rotary programme dial that turns to the selected programme,
+and embossed Start/Pause/Stop buttons with live LED dots — over a plain-English status line
+("About 2 h 15 min left — done by 17:43") with door / delay / load / low-detergent notes.
+
+The large size shows everything and is happy as the only card on a dashboard; medium keeps
+the dial/button fascia, temperature/spin and the everyday toggles; small is the hero alone.
+
+</details>
+
+<details><summary><b>Advanced Washing Machine (medium)</b> — notes</summary>
+
+Built for Tuya washing machines / washer-dryers whose integration exposes
+sibling entities on one id prefix (`sensor.<base>_machine_status`, `select.<base>_actions`,
+`select.<base>_temperature`, `switch.<base>_prewash`, …). Pick the machine-status sensor;
+everything else is derived. The card is drawn as the machine's own white fascia: a porthole
+with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (or the F-code on
+a fault, blinking when paused), a rotary programme dial that turns to the selected programme,
+and embossed Start/Pause/Stop buttons with live LED dots — over a plain-English status line
+("About 2 h 15 min left — done by 17:43") with door / delay / load / low-detergent notes.
+
+</details>
+
+<details><summary><b>Advanced Washing Machine (small)</b> — notes</summary>
+
+Built for Tuya washing machines / washer-dryers whose integration exposes
+sibling entities on one id prefix (`sensor.<base>_machine_status`, `select.<base>_actions`,
+`select.<base>_temperature`, `switch.<base>_prewash`, …). Pick the machine-status sensor;
+everything else is derived. The card is drawn as the machine's own white fascia: a porthole
+with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (or the F-code on
+a fault, blinking when paused), a rotary programme dial that turns to the selected programme,
+and embossed Start/Pause/Stop buttons with live LED dots — over a plain-English status line
+("About 2 h 15 min left — done by 17:43") with door / delay / load / low-detergent notes.
+
+</details>
 
 <details><summary><b>Animated 3D Printer</b> — notes</summary>
 
