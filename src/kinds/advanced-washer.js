@@ -26,17 +26,22 @@
 const awDisabled = (status) => `
         {% if states('${status}') in ['off', 'unavailable', 'unknown'] %}pointer-events: none; opacity: 0.55; filter: saturate(0.35);{% endif %}`;
 
-// The machine now renders as ONE white fascia (a vertical-stack-in-card). The dark-on-white
-// text vars live on the children so Mushroom reads them locally; the actual white surface +
-// border live once, on the wrapper (AW_SHELL), instead of on every tile.
+// The machine renders as ONE white fascia (a vertical-stack-in-card). The wrapper's
+// gradient is the ONLY surface: every child ha-card must be genuinely transparent
+// (AW_FLAT), or each tile paints its own opaque rounded rectangle over the gradient and
+// the fascia shatters back into a stack of pills. The dark-on-white text vars live on the
+// children so Mushroom reads them locally.
 const AW_TEXT = `
         --primary-text-color: #23282d;
         --secondary-text-color: #59636b;
         --card-primary-color: #23282d;
         --card-secondary-color: #59636b;`;
-const AW_SHELL = `
-        background: linear-gradient(180deg, #f7f8f9 0%, #eceef0 60%, #e3e6e9 100%);
-        border: 1px solid #d3d8dc;
+const AW_FLAT = `
+        background: transparent !important;
+        --ha-card-background: transparent;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0;
         ${AW_TEXT}`;
 
 // ── the porthole, drawn identically into BOTH icon structures (DESIGN.md rule 2) ─────────
@@ -149,9 +154,9 @@ const awButton = (actions, status, option, label, icon, rgb, lit, confirmText) =
         ${awDisabled(status)}
         --aw-btn-rgb: ${rgb};
         {% if ${lit} %}--aw-btn-led: 1; --aw-btn-glow: 7px; --aw-btn-blink: aw-btn-blink 1.6s steps(1) infinite;{% endif %}
-        ${AW_TEXT}
-        --card-primary-font-size: 1.05rem;
-        --card-primary-font-weight: 700;
+        ${AW_FLAT}
+        --card-primary-font-size: 0.95rem;
+        --card-primary-font-weight: 600;
       }`,
   } },
 });
@@ -204,34 +209,48 @@ const awDial = (prog, status) => ({
       ha-card {
         ${awDisabled(status)}
         --aw-dial: {{ states('${prog}') | int(0) }};
-        ${AW_TEXT}
-        --card-primary-font-size: 1.05rem;
-        --card-primary-font-weight: 700;
+        ${AW_FLAT}
+        --card-primary-font-size: 0.95rem;
+        --card-primary-font-weight: 600;
       }`,
   } },
 });
 
 // ── a programme-setting dropdown whose icon comes alive only while the machine runs ──────
+// The state would show twice (secondary text AND the dropdown), so the secondary is hidden;
+// the dropdown fill is pinned — theme vars can't be trusted for contrast on the white fascia.
 const awSelect = (entity, status, name, icon, color, runAnim, keyframes) => ({
   type: "custom:mushroom-select-card",
   entity, name, icon, icon_color: color,
-  card_mod: { style: { ".": `
+  card_mod: { style: {
+    "mushroom-state-info$": `.secondary { display: none !important; }`,
+    ".": `
       ha-state-icon { display: inline-block; transform-origin: 50% 60%; animation: var(--aw-set, none); }
       ${keyframes}
       ha-card {
         ${awDisabled(status)}
         {% if is_state('${status}', 'running') %}--aw-set: ${runAnim};{% endif %}
-        ${AW_TEXT}
+        ${AW_FLAT}
+        --spacing: 8px;
+        --card-primary-font-size: 0.9rem;
+        --control-select-menu-background-color: rgba(35, 40, 45, 0.07);
+        --control-select-menu-text-color: #23282d;
       }` } },
 });
 
 // ── a feature toggle that breathes gently while ON (motion = "this option is active") ────
+// Three of these share a row: a 42px icon + 12px spacing left ~50px of text at phone width
+// and every label truncated ("Anti-cr…"). 36px icon, 8px spacing, 0.85rem, and labels are
+// ALLOWED TO WRAP (!important — Mushroom's ellipsis ships via adoptedStyleSheets, which
+// cascade after card-mod's <style>).
 const awToggle = (entity, status, name, icon, color) => ({
   type: "custom:mushroom-entity-card",
   entity, name, icon, icon_color: color,
   secondary_info: "state",
   tap_action: { action: "toggle" },
-  card_mod: { style: { ".": `
+  card_mod: { style: {
+    "mushroom-state-info$": `.primary { white-space: normal !important; line-height: 1.2 !important; }`,
+    ".": `
       ha-state-icon { display: inline-block; animation: var(--aw-opt, none); }
       @keyframes aw-opt-breathe {
         0%, 100% { transform: scale(1); filter: brightness(1); }
@@ -240,8 +259,11 @@ const awToggle = (entity, status, name, icon, color) => ({
       ha-card {
         ${awDisabled(status)}
         {% if is_state(config.entity, 'on') %}--aw-opt: aw-opt-breathe 3s ease-in-out infinite;{% endif %}
-        ${AW_TEXT}
-        --card-primary-font-size: 0.95rem;
+        ${AW_FLAT}
+        --icon-size: 32px;
+        --spacing: 6px;
+        --card-primary-font-size: 0.85rem;
+        --card-secondary-font-size: 0.8rem;
       }` } },
 });
 
@@ -257,15 +279,39 @@ const awStat = (entity, status, name, icon, color, secondary, runAnim, keyframes
   card_mod: { style: { ".": `
       ha-state-icon { display: inline-block; transform-origin: 50% 50%; animation: var(--aw-stat, none); }
       ${keyframes}
+      /* tile structure: the primary/secondary spans are SLOTTED into ha-tile-info, so
+         (like slotted icons, DESIGN.md rule 3) their ellipsis must be beaten from the HOST
+         block — let both lines wrap instead of "0.0 kWh …" truncation. !important because
+         Mushroom's nowrap ships via adoptedStyleSheets, which cascade after card-mod. */
+      ha-tile-info [slot="primary"], ha-tile-info [slot="secondary"] {
+        white-space: normal !important; text-overflow: clip !important;
+        line-height: 1.25 !important;
+      }
+      /* 3-abreast in a 129px cell: a 36px icon leaves "Programme" clipped mid-word */
+      ha-tile-icon { --tile-icon-size: 32px; --mdc-icon-size: 18px; width: 32px; height: 32px; }
+      mushroom-shape-icon { --icon-size: 32px; }
       ha-card {
         {% if is_state('${status}', 'running') %}--aw-stat: ${runAnim};{% endif %}
-        ${AW_TEXT}
-        --card-secondary-font-size: 0.95rem;
+        ${AW_FLAT}
+        --icon-size: 32px;
+        --card-primary-font-size: 0.82rem;
+        --card-secondary-font-size: 0.78rem;
       }` } },
 });
 
 // ── the shared builder ────────────────────────────────────────────────────────────────────
 // parts: { controls, settings, everyday, options, stats } — which sections this size shows.
+
+// Vertical rhythm on the fascia: rows inside vertical-stack-in-card sit flush, so with the
+// section titles gone the zones need whitespace to read as zones — a larger gap opens each
+// zone, a small one separates rows within it. (horizontal-stack takes no card_mod, so the
+// margin goes on every cell of the row.)
+const awGap = (px, row) => {
+  for (const cell of row.cards) cell.card_mod.style["."] += `
+      ha-card { margin-top: ${px}px; }`;
+  return row;
+};
+
 const awMake = (c, parts) => {
   const base = (c.entity || "sensor.washing_machine_machine_status")
     .split(".")[1].replace(/_machine_status$/, "");
@@ -293,7 +339,7 @@ const awMake = (c, parts) => {
     `{% if st in ['unavailable', 'unknown'] %}Offline — check the machine's power and Wi-Fi` +
     `{% elif e not in ['none', 'unavailable', 'unknown'] %}⚠ Problem ({{ e | replace('error_', 'fault ') | replace('_', ' ') | upper }}) — check the machine` +
     `{% elif st == 'alarm' %}⚠ Problem — check the machine` +
-    `{% elif st == 'running' %}About {{ time }} left — done by {{ fin }}` +
+    `{% elif st == 'running' %}About {{ time }} left — done by {{ fin }}` +
     `{% elif st == 'paused' %}Paused — {{ time }} still to go` +
     `{% elif st == 'standby' %}Ready — the wash takes about {{ time }}. Press Start.` +
     `{% else %}Switched off{% endif %}` +
@@ -323,6 +369,9 @@ const awMake = (c, parts) => {
         ha-tile-icon { --tile-icon-size: 92px; width: 92px; height: 92px; }
         /* the porthole IS the machine — the mdi glyph would float on the glass, so hide it */
         ha-state-icon, ha-icon { display: none; }
+        /* reserve the top-right corner for the LED display — long names/status lines must
+           wrap early, never slide underneath it */
+        ha-tile-info { margin-right: 82px; }
         ha-card {
           {% set st = states(config.entity) %}
           {% set e = states('${err}') %}
@@ -352,11 +401,10 @@ const awMake = (c, parts) => {
           {% else %}--aw-pulse: none; --aw-drum: none; --aw-slosh: none; --aw-water: 10%; --aw-op: 0.85;{% endif %}
           position: relative;
           overflow: hidden;
-          clip-path: inset(0 0 0 0 round var(--ha-card-border-radius, 12px));
-          ${AW_TEXT}
+          ${AW_FLAT}
           --card-primary-font-size: 1.35rem;
-          --card-secondary-font-size: 1.02rem;
-          padding-top: 6px;
+          --card-secondary-font-size: 1rem;
+          padding: 6px 0 10px;
         }
         /* the LED time/fault display, top right — seven-segment-ish glow on a dark inset */
         @keyframes aw-led-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0.25; } }
@@ -374,14 +422,17 @@ const awMake = (c, parts) => {
           white-space: nowrap;
           animation: var(--aw-led-anim, none);
         }
+        /* progress: an inset rounded track with the fill drawn as a hard gradient stop —
+           a full-bleed square-ended stripe read as a glitchy separator, not progress */
         ha-card::after {
           content: '';
-          position: absolute; left: 0; bottom: 0; height: 5px;
-          width: calc(100% * var(--aw-frac, 0));
-          background: rgb(var(--aw-rgb, 96, 135, 170));
-          box-shadow: 0 0 12px rgba(var(--aw-rgb, 96, 135, 170), 0.9);
+          position: absolute; left: 12px; right: 12px; bottom: 2px; height: 6px;
+          border-radius: 3px;
+          background: linear-gradient(90deg,
+            rgb(var(--aw-rgb, 96, 135, 170)) calc(var(--aw-frac, 0) * 100%),
+            rgba(35, 40, 45, 0.1) calc(var(--aw-frac, 0) * 100%));
           display: var(--aw-bar, none);
-          transition: width 0.8s ease; z-index: 2;
+          z-index: 2;
         }`,
     } },
   };
@@ -389,7 +440,7 @@ const awMake = (c, parts) => {
   const cards = [hero];
 
   if (parts.controls) {
-    cards.push({ type: "horizontal-stack", cards: [
+    cards.push(awGap(4, { type: "horizontal-stack", cards: [
       awDial(s("selected_program"), status),
       awButton(actions, status, "start", "Start", "mdi:play", "76, 175, 80",
         `is_state('${status}', 'running')`),
@@ -398,7 +449,7 @@ const awMake = (c, parts) => {
       awButton(actions, status, "stop", "Stop", "mdi:stop", "244, 67, 54",
         `is_state('${status}', 'alarm')`,
         "Stop the wash? The programme will be cancelled."),
-    ] });
+    ] }));
   }
 
   const tempSelect = awSelect(sel("temperature"), status, "Wash temperature", "mdi:thermometer", "red",
@@ -409,80 +460,82 @@ const awMake = (c, parts) => {
     `@keyframes aw-set-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`);
 
   if (parts.settings) {
-    cards.push({ type: "horizontal-stack", cards: [tempSelect, spinSelect] });
-    cards.push({ type: "horizontal-stack", cards: [
+    cards.push(awGap(14, { type: "horizontal-stack", cards: [tempSelect, spinSelect] }));
+    cards.push(awGap(6, { type: "horizontal-stack", cards: [
       awSelect(sel("detergent"), status, "Detergent amount", "mdi:chart-bubble", "teal",
         "aw-set-bob 2.8s ease-in-out infinite",
         `@keyframes aw-set-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }`),
       awSelect(sel("softener"), status, "Softener amount", "mdi:flower-tulip-outline", "pink",
         "aw-set-sway 3.4s ease-in-out infinite",
         `@keyframes aw-set-sway { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }`),
-    ] });
+    ] }));
   } else if (parts.everyday) {
     // medium: the two settings everyone actually changes, no title chrome
-    cards.push({ type: "horizontal-stack", cards: [tempSelect, spinSelect] });
+    cards.push(awGap(14, { type: "horizontal-stack", cards: [tempSelect, spinSelect] }));
   }
 
   if (parts.options) {
-    cards.push({ type: "horizontal-stack", cards: [
+    cards.push(awGap(14, { type: "horizontal-stack", cards: [
       awToggle(sw("prewash"), status, "Pre-wash", "mdi:water-plus", "light-blue"),
       awToggle(sw("steam"), status, "Steam", "mdi:kettle-steam", "cyan"),
       awToggle(sw("extra_rinse"), status, "Extra rinse", "mdi:water-sync", "blue"),
-    ] });
-    cards.push({ type: "horizontal-stack", cards: [
+    ] }));
+    cards.push(awGap(4, { type: "horizontal-stack", cards: [
       awToggle(sw("anti_crease"), status, "Anti-crease", "mdi:iron", "purple"),
       awToggle(sw("time_save"), status, "Quick wash", "mdi:clock-fast", "amber"),
       awToggle(sw("auto_dose"), status, "Auto dosing", "mdi:cup-water", "teal"),
-    ] });
-    cards.push({ type: "horizontal-stack", cards: [
+    ] }));
+    cards.push(awGap(4, { type: "horizontal-stack", cards: [
       awToggle(sw("child_lock"), status, "Child lock", "mdi:account-lock", "red"),
       awToggle(sw("mute"), status, "Quiet mode", "mdi:volume-off", "blue-grey"),
       awToggle(sw("auto_tub_clean"), status, "Drum clean", "mdi:autorenew", "green"),
-    ] });
+    ] }));
   } else if (parts.everyday) {
-    cards.push({ type: "horizontal-stack", cards: [
+    cards.push(awGap(14, { type: "horizontal-stack", cards: [
       awToggle(sw("time_save"), status, "Quick wash", "mdi:clock-fast", "amber"),
       awToggle(sw("extra_rinse"), status, "Extra rinse", "mdi:water-sync", "blue"),
       awToggle(sw("child_lock"), status, "Child lock", "mdi:account-lock", "red"),
-    ] });
+    ] }));
   }
 
   if (parts.stats) {
-    cards.push({ type: "horizontal-stack", cards: [
+    cards.push(awGap(14, { type: "horizontal-stack", cards: [
+      // NBSPs inside each unit group: at phone width the secondary wraps between groups
+      // ("0.2 kWh" / "· 22 L"), never leaving a dangling "·" at a line end
       awStat(s("daily_energy"), status, "Today", "mdi:lightning-bolt", "amber",
-        `{{ states('${s("daily_energy")}') | float(0) | round(1) }} kWh · {{ states('${s("daily_water_consumption")}') | float(0) | round(0) }} L`,
+        `{{ states('${s("daily_energy")}') | float(0) | round(1) }} kWh · {{ states('${s("daily_water_consumption")}') | float(0) | round(0) }} L`,
         "aw-stat-flick 1.6s ease-in-out infinite",
         `@keyframes aw-stat-flick { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.6); } }`),
       awStat(s("electricity_consumption"), status, "All time", "mdi:counter", "deep-purple",
-        `{{ states('${s("electricity_consumption")}') | float(0) | round(1) }} kWh · {{ states('${s("water_consumption")}') | float(0) | round(0) }} L`,
+        `{{ states('${s("electricity_consumption")}') | float(0) | round(1) }} kWh · {{ states('${s("water_consumption")}') | float(0) | round(0) }} L`,
         "aw-stat-tick 2s steps(4) infinite",
         `@keyframes aw-stat-tick { from { transform: translateY(0); } to { transform: translateY(-2px); } }`),
-      awStat(s("selected_program"), status, "Programme", "mdi:tshirt-crew", "indigo",
-        `No. {{ states('${s("selected_program")}') }} · step {{ states('${s("current_program_phase")}') }}`,
+      // "Cycle", not "Programme": a single unbreakable 9-char word cannot fit a 3-across
+      // footer cell at phone width — it clipped mid-word at every size tried
+      awStat(s("selected_program"), status, "Cycle", "mdi:tshirt-crew", "indigo",
+        `No. {{ states('${s("selected_program")}') }} · step {{ states('${s("current_program_phase")}') }}`,
         "aw-stat-bob 3s ease-in-out infinite",
         `@keyframes aw-stat-bob { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }`),
-    ] });
+    ] }));
   }
 
-  // One card, not a stack of tiles: vertical-stack-in-card strips every child's border,
-  // radius and shadow, so the porthole, buttons and settings all sit on a single white
-  // fascia. `--vsic-*` are its gap knobs; the padding + radius make the fascia read as the
-  // machine's front panel.
+  // One card, not a stack of tiles: the wrapper's gradient is the only painted surface —
+  // every child is AW_FLAT-transparent, so the porthole, buttons and settings all sit
+  // directly on a single white fascia. (Never re-point --ha-card-background at a colour
+  // here: the children inherit it and turn back into opaque tiles.)
   return {
     type: "custom:vertical-stack-in-card",
     cards,
     card_mod: { style: `
       ha-card {
         /* vertical-stack-in-card keeps the theme's (dark) ha-card background, so the white
-           fascia must win with !important and also override --ha-card-background, which the
-           inner container reads. */
+           fascia must win with !important */
         background: linear-gradient(180deg, #f7f8f9 0%, #eceef0 60%, #e3e6e9 100%) !important;
-        --ha-card-background: #f4f6f7 !important;
         border: 1px solid #cfd5d9 !important;
         box-shadow: 0 2px 10px rgba(0,0,0,0.35) !important;
         ${AW_TEXT}
         border-radius: 22px;
-        padding: 10px 10px 12px;
+        padding: 12px 12px 14px;
       }
       #root { background: transparent !important; }` },
     grid_options: { columns: 12, rows: parts.rows ?? "auto" },
