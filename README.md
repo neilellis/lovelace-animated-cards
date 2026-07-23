@@ -77,7 +77,7 @@ there the draw is the only signal available.
 |---|---|---|---|
 | **Advanced Washing Machine (large)** | `custom:anim-advanced-washer-card` | — | The whole machine on one white fascia — porthole, LED display, programme dial, Start/Pause/Stop, every setting, toggle and usage stat |
 | **Advanced Washing Machine (medium)** | `custom:anim-advanced-washer-medium-card` | — | Porthole hero + LED display, programme dial and Start/Pause/Stop, temperature & spin, and the everyday toggles |
-| **Advanced Washing Machine (small)** | `custom:anim-advanced-washer-small-card` | — | The animated porthole hero alone — LED time display, status sentence, progress bar, warnings |
+| **Advanced Washing Machine (small)** | `custom:anim-advanced-washer-small-card` | — | The animated porthole hero alone — LED time display, status-chip row, progress bar, warnings |
 | **Animated 3D Printer** | `custom:anim-printer-3d-card` | `icon` `color` `glow` `speed` `variant` `max_value` `active` | Nozzle rasters layer by layer while printing — optional progress beam and DONE badge |
 | **Animated Air Purifier** | `custom:anim-air-purifier-card` | `icon` `color` `glow` `speed` `active` | Motor hum breath with clean-air rings rippling out while it runs |
 | **Animated Air Quality** | `custom:anim-air-quality-card` | `variant` `icon` `graph` `graph_hours` | AQI tile banded good→hazardous, glow + halo escalating with severity; optional 24 h sparkline |
@@ -150,10 +150,11 @@ Built for Tuya washing machines / washer-dryers whose integration exposes
 sibling entities on one id prefix (`sensor.<base>_machine_status`, `select.<base>_actions`,
 `select.<base>_temperature`, `switch.<base>_prewash`, …). Pick the machine-status sensor;
 everything else is derived. The card is drawn as the machine's own white fascia: a porthole
-with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (or the F-code on
-a fault, blinking when paused), a rotary programme dial that turns to the selected programme,
-and embossed Start/Pause/Stop buttons with live LED dots — over a plain-English status line
-("About 2 h 15 min left — done by 17:43") with door / delay / load / low-detergent notes.
+with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (blinking when
+paused, a red "EEEE" when the machine faults or goes offline), a rotary programme dial that
+turns to the selected programme, and embossed Start/Pause/Stop buttons with live LED dots —
+above a compact row of status chips (running/paused/standby & fault, door open/closed,
+delayed start, load, low detergent / softener).
 
 The large size shows everything and is happy as the only card on a dashboard; medium keeps
 the dial/button fascia, temperature/spin and the everyday toggles; small is the hero alone.
@@ -166,10 +167,11 @@ Built for Tuya washing machines / washer-dryers whose integration exposes
 sibling entities on one id prefix (`sensor.<base>_machine_status`, `select.<base>_actions`,
 `select.<base>_temperature`, `switch.<base>_prewash`, …). Pick the machine-status sensor;
 everything else is derived. The card is drawn as the machine's own white fascia: a porthole
-with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (or the F-code on
-a fault, blinking when paused), a rotary programme dial that turns to the selected programme,
-and embossed Start/Pause/Stop buttons with live LED dots — over a plain-English status line
-("About 2 h 15 min left — done by 17:43") with door / delay / load / low-detergent notes.
+with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (blinking when
+paused, a red "EEEE" when the machine faults or goes offline), a rotary programme dial that
+turns to the selected programme, and embossed Start/Pause/Stop buttons with live LED dots —
+above a compact row of status chips (running/paused/standby & fault, door open/closed,
+delayed start, load, low detergent / softener).
 
 </details>
 
@@ -179,10 +181,11 @@ Built for Tuya washing machines / washer-dryers whose integration exposes
 sibling entities on one id prefix (`sensor.<base>_machine_status`, `select.<base>_actions`,
 `select.<base>_temperature`, `switch.<base>_prewash`, …). Pick the machine-status sensor;
 everything else is derived. The card is drawn as the machine's own white fascia: a porthole
-with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (or the F-code on
-a fault, blinking when paused), a rotary programme dial that turns to the selected programme,
-and embossed Start/Pause/Stop buttons with live LED dots — over a plain-English status line
-("About 2 h 15 min left — done by 17:43") with door / delay / load / low-detergent notes.
+with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (blinking when
+paused, a red "EEEE" when the machine faults or goes offline), a rotary programme dial that
+turns to the selected programme, and embossed Start/Pause/Stop buttons with live LED dots —
+above a compact row of status chips (running/paused/standby & fault, door open/closed,
+delayed start, load, low detergent / softener).
 
 </details>
 
