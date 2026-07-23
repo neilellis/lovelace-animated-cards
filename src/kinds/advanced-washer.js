@@ -13,11 +13,13 @@
 //
 // The design is skeuomorphic — the card IS the machine's front, per Neil's reference photos:
 // every card in the stack wears a white appliance fascia (striking on a dark dashboard);
-// the hero's icon disc is the porthole (white rim, dark glass, a tri-spoke drum that tumbles
-// the laundry through sloshing water) and its badge is a seven-segment-style LED display
-// (time remaining; blinks amber when paused; blinks a red "EEEE" when the machine faults or
-// goes offline); a compact row of status chips (state / door / delay / load / low-dose) sits
-// beneath it in place of a wordy status sentence; the
+// the hero is the machine's control panel — a porthole on the LEFT (white rim, dark glass, a
+// tri-spoke drum that tumbles the laundry through sloshing water) beside a large dark LED
+// SCREEN on the RIGHT that reads like the real display: big glowing seven-segment digits (time
+// remaining; blinks amber when paused; blinks a red "EEEE" when the machine faults or goes
+// offline), with the machine-state glyph + door open/closed indicator sitting small within the
+// bezel and a progress track along its bottom edge. A slim conditional row below surfaces the
+// occasional statuses (delayed start / load / low detergent-softener) only when they apply; the
 // programme dial is a real rotary knob whose pointer turns to the selected programme; the
 // Start/Pause/Stop buttons are embossed white machine buttons with an LED dot that lights
 // when their state is live. Idle stays quiet (DESIGN.md §6) — motion means a wash is on.
@@ -26,7 +28,7 @@
 // fascia goes grey and stops taking taps — like the real machine, nothing works until the
 // panel wakes. `status` is the machine-status sensor; stats/hero stay readable.
 const awDisabled = (status) => `
-        {% if states('${status}') in ['off', 'unavailable', 'unknown'] %}pointer-events: none; opacity: 0.55; filter: saturate(0.35);{% endif %}`;
+        {% if states('${status}') in ['off', 'unavailable', 'unknown'] %}pointer-events: none; opacity: 0.78; filter: saturate(0.6);{% endif %}`;
 
 // The machine renders as ONE white fascia (a vertical-stack-in-card). The wrapper's
 // gradient is the ONLY surface: every child ha-card must be genuinely transparent
@@ -235,8 +237,14 @@ const awSelect = (entity, status, name, icon, color, runAnim, keyframes) => ({
         ${AW_FLAT}
         --spacing: 8px;
         --card-primary-font-size: 0.9rem;
-        --control-select-menu-background-color: rgba(35, 40, 45, 0.07);
+        /* the dropdown fill: theme vars can't be trusted for contrast on the white fascia, so
+           pin a deeper tint + a visible border so the control reads as a control, not a ghost */
+        --control-select-menu-background-color: rgba(35, 40, 45, 0.14);
         --control-select-menu-text-color: #23282d;
+      }
+      ha-control-select-menu {
+        border: 1px solid rgba(35, 40, 45, 0.22) !important;
+        border-radius: 12px !important;
       }` } },
 });
 
@@ -277,6 +285,11 @@ const awStat = (entity, status, name, icon, color, secondary, runAnim, keyframes
   secondary,
   icon,
   icon_color: color,
+  // vertical (icon-on-top) so the text spans the FULL 3-across cell (~100px) instead of the
+  // ~55px an icon-left layout leaves — at 360px phone width "0.3 kWh · 23 L" and "No. 2 · step
+  // 7" clipped their tails ("0.3 kW", "step") in the horizontal layout; centred + full-width
+  // they wrap cleanly.
+  layout: "vertical",
   tap_action: { action: "more-info" },
   card_mod: { style: { ".": `
       ha-state-icon { display: inline-block; transform-origin: 50% 50%; animation: var(--aw-stat, none); }
@@ -287,11 +300,10 @@ const awStat = (entity, status, name, icon, color, secondary, runAnim, keyframes
          Mushroom's nowrap ships via adoptedStyleSheets, which cascade after card-mod. */
       ha-tile-info [slot="primary"], ha-tile-info [slot="secondary"] {
         white-space: normal !important; text-overflow: clip !important;
-        line-height: 1.25 !important;
+        line-height: 1.2 !important; text-align: center !important;
       }
-      /* 3-abreast in a 129px cell: a 36px icon leaves "Programme" clipped mid-word */
-      ha-tile-icon { --tile-icon-size: 32px; --mdc-icon-size: 18px; width: 32px; height: 32px; }
-      mushroom-shape-icon { --icon-size: 32px; }
+      ha-tile-icon { --tile-icon-size: 30px; --mdc-icon-size: 18px; width: 30px; height: 30px; }
+      mushroom-shape-icon { --icon-size: 30px; }
       ha-card {
         {% if is_state('${status}', 'running') %}--aw-stat: ${runAnim};{% endif %}
         ${AW_FLAT}
@@ -330,102 +342,65 @@ const awMake = (c, parts) => {
   const delay = s("delay_end_time");
   const weight = s("washing_program_weight");
 
-  const hero = {
+  // Shared state→visual preamble: computed identically in the porthole and the LED screen so
+  // each card sets only the vars it needs (DESIGN.md rule 1 — Jinja lives in the host block).
+  const statePre = `
+          {% set st = states('${status}') %}
+          {% set e = states('${err}') %}
+          {% set offline = st in ['unavailable', 'unknown'] %}
+          {% set trouble = st == 'alarm' or e not in ['none', 'unavailable', 'unknown'] %}
+          {% set fault = offline or trouble %}`;
+
+  // ── the porthole (LEFT half of the hero) — the animated drum disc, no glyph, no text ──────
+  // The LED display and progress bar have MOVED to the screen card on the right; this card is
+  // now just the tumbling porthole, vertically centred so it sits on the LED's centre line.
+  const portholeCard = {
     type: "custom:mushroom-template-card",
     entity: status,
-    // No primary label — the porthole already says it's a washing machine (Neil's req 1).
-    // No status sentence — those states move to the chip row below (req 2). layout: vertical
-    // centres the porthole now the text column is gone; the LED still floats top-right.
     layout: "vertical",
     icon: "mdi:washing-machine",
-    icon_color: `{% set st = states(entity) %}{% set e = states('${err}') %}{% if st in ['unavailable', 'unknown'] or st == 'alarm' or e not in ['none', 'unavailable', 'unknown'] %}red{% elif st == 'running' %}light-blue{% elif st == 'paused' %}orange{% elif st == 'standby' %}green{% else %}blue-grey{% endif %}`,
     tap_action: { action: "more-info" },
     hold_action: { action: "more-info" },
     card_mod: { style: {
-      "mushroom-shape-icon$": awPorthole(".shape", "--icon-size: 92px !important; width: var(--icon-size) !important; height: var(--icon-size) !important;"),
-      "ha-tile-icon$": awPorthole(".container", "width: 92px !important; height: 92px !important;"),
+      "mushroom-shape-icon$": awPorthole(".shape", "--icon-size: 88px !important; width: var(--icon-size) !important; height: var(--icon-size) !important;"),
+      "ha-tile-icon$": awPorthole(".container", "width: 88px !important; height: 88px !important;"),
       ".": `
-        mushroom-shape-icon { --icon-size: 92px; display: flex; margin: 0 !important; }
-        ha-tile-icon { --tile-icon-size: 92px; width: 92px; height: 92px; }
+        mushroom-shape-icon { --icon-size: 88px; display: flex; margin: 0 !important; }
+        ha-tile-icon { --tile-icon-size: 88px; width: 88px; height: 88px; }
         /* the porthole IS the machine — the mdi glyph would float on the glass, so hide it */
         ha-state-icon, ha-icon { display: none; }
-        /* no text column any more — collapse it so the centred porthole isn't shoved down/left */
         ha-tile-info, mushroom-state-info { display: none !important; }
         ha-card {
-          {% set st = states(config.entity) %}
-          {% set e = states('${err}') %}
-          {% set rm = states('${rem}') | float(0) %}
-          {% set tt = states('${tot}') | float(0) %}
-          {% set frac = ((tt - rm) / tt) if tt > 0 else 0 %}
-          {% set frac = [[frac, 0] | max, 1] | min %}
-          {% set offline = st in ['unavailable', 'unknown'] %}
-          {% set trouble = st == 'alarm' or e not in ['none', 'unavailable', 'unknown'] %}
-          {% set mins = rm | int %}
-          {% set clock = (mins // 60) ~ ':' ~ ('%02d' | format(mins % 60)) %}
-          {# offline (unreachable) and a fault both show a blinking red EEEE (req 3); a genuine
-             'off' stays quiet with '--:--' #}
-          {% if offline or trouble %}{% set rgb = '244, 67, 54' %}{% set led = 'EEEE' %}{% set ledc = '#ff5a5a' %}{% set leda = 'aw-led-blink 0.8s steps(1) infinite' %}
-          {% elif st == 'running' %}{% set rgb = '3, 169, 244' %}{% set led = clock %}{% set ledc = '#7cfc98' %}{% set leda = 'none' %}
-          {% elif st == 'paused' %}{% set rgb = '255, 152, 0' %}{% set led = clock %}{% set ledc = '#ffc66d' %}{% set leda = 'aw-led-blink 1.4s steps(1) infinite' %}
-          {% elif st == 'standby' %}{% set rgb = '76, 175, 80' %}{% set led = clock %}{% set ledc = '#8fe4a3' %}{% set leda = 'none' %}
-          {% else %}{% set rgb = '96, 135, 170' %}{% set led = '--:--' %}{% set ledc = '#8a9199' %}{% set leda = 'none' %}{% endif %}
+          ${statePre}
+          {% if fault %}{% set rgb = '244, 67, 54' %}
+          {% elif st == 'running' %}{% set rgb = '3, 169, 244' %}
+          {% elif st == 'paused' %}{% set rgb = '255, 152, 0' %}
+          {% elif st == 'standby' %}{% set rgb = '76, 175, 80' %}
+          {% else %}{% set rgb = '96, 135, 170' %}{% endif %}
           --aw-rgb: {{ rgb }};
-          --aw-frac: {{ frac | round(3) }};
-          --aw-led-text: "{{ led }}";
-          --aw-led-color: {{ ledc }};
-          --aw-led-anim: {{ leda }};
-          --aw-bar: {{ 'block' if st in ['running', 'paused'] else 'none' }};
-          {% if offline or trouble %}--aw-pulse: aw-pulse 0.8s ease-in-out infinite; --aw-drum: none; --aw-slosh: none; --aw-water: 40%; --aw-op: 1;
+          {% if fault %}--aw-pulse: aw-pulse 0.8s ease-in-out infinite; --aw-drum: none; --aw-slosh: none; --aw-water: 40%; --aw-op: 1;
           {% elif st == 'running' %}--aw-pulse: aw-pulse 2s ease-in-out infinite; --aw-drum: aw-drum 2.2s linear infinite; --aw-slosh: aw-slosh 5s linear infinite; --aw-water: 42%; --aw-op: 1;
           {% elif st == 'paused' %}--aw-pulse: aw-pulse 3.5s ease-in-out infinite; --aw-drum: aw-drum 8s linear infinite; --aw-slosh: aw-slosh 12s linear infinite; --aw-water: 42%; --aw-op: 0.95;
           {% elif st == 'standby' %}--aw-pulse: aw-pulse 4s ease-in-out infinite; --aw-drum: none; --aw-slosh: none; --aw-water: 18%; --aw-op: 1;
-          {% else %}--aw-pulse: none; --aw-drum: none; --aw-slosh: none; --aw-water: 10%; --aw-op: 0.85;{% endif %}
-          position: relative;
-          overflow: hidden;
+          {% else %}--aw-pulse: none; --aw-drum: none; --aw-slosh: none; --aw-water: 10%; --aw-op: 0.92;{% endif %}
           ${AW_FLAT}
-          padding: 8px 0 12px;
-        }
-        /* the LED time/fault display, top right — seven-segment-ish glow on a dark inset */
-        @keyframes aw-led-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0.25; } }
-        ha-card::before {
-          content: var(--aw-led-text, "--:--");
-          position: absolute; top: 10px; right: 12px; z-index: 5;
-          background: linear-gradient(180deg, #14181c, #1e2429);
-          color: var(--aw-led-color, #8a9199);
-          border: 1px solid #0c0f12;
-          box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.6);
-          padding: 4px 12px; border-radius: 6px;
-          font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-          font-size: 19px; font-weight: 700; letter-spacing: 2px;
-          text-shadow: 0 0 7px currentColor;
-          white-space: nowrap;
-          animation: var(--aw-led-anim, none);
-        }
-        /* progress: an inset rounded track with the fill drawn as a hard gradient stop —
-           a full-bleed square-ended stripe read as a glitchy separator, not progress */
-        ha-card::after {
-          content: '';
-          position: absolute; left: 12px; right: 12px; bottom: 2px; height: 6px;
-          border-radius: 3px;
-          background: linear-gradient(90deg,
-            rgb(var(--aw-rgb, 96, 135, 170)) calc(var(--aw-frac, 0) * 100%),
-            rgba(35, 40, 45, 0.1) calc(var(--aw-frac, 0) * 100%));
-          display: var(--aw-bar, none);
-          z-index: 2;
+          display: flex; align-items: center; justify-content: center;
+          padding: 2px 0;
+          min-height: 112px;
         }`,
     } },
   };
 
-  // ── the status-icon row (req 2): a compact chip row on the fascia, under the porthole/LED ──
-  // Real MDI glyphs, per-state colour, conditional visibility. The state chip doubles as the
-  // ONE fault glyph (mdi:alert red on offline/alarm/error). Conditional chips (delay/load/
-  // detergent/softener) return an empty icon+content when they don't apply — with transparent
-  // chip backgrounds an empty chip renders nothing, so no "dead pill" gaps.
-  const heroChips = {
+  // ── the LED screen (RIGHT half of the hero) — the machine's real display ──────────────────
+  // A mushroom-chips-card styled as a dark inset screen: two small indicator glyphs (machine
+  // state + door) sit near the top; the big time / "EEEE" digits glow, centred, via ha-card::
+  // before (a real pseudo-element, so a genuine seven-seg text-shadow bloom); the progress
+  // track runs along the bottom (::after). state+door fold in here — no separate chip row.
+  const ledScreen = {
     type: "custom:mushroom-chips-card",
     alignment: "center",
     chips: [
-      // machine state — and the single fault glyph (offline/alarm/error -> red alert)
+      // machine state — and the single fault glyph (offline/alarm/error -> red alert, req 4)
       { type: "template",
         icon: `{% set st = states('${status}') %}{% set e = states('${err}') %}{% if st in ['unavailable', 'unknown'] or st == 'alarm' or e not in ['none', 'unavailable', 'unknown'] %}mdi:alert{% elif st == 'running' %}mdi:sync{% elif st == 'paused' %}mdi:pause-circle{% elif st == 'standby' %}mdi:play-circle{% elif st == 'off' %}mdi:power{% else %}mdi:washing-machine{% endif %}`,
         icon_color: `{% set st = states('${status}') %}{% set e = states('${err}') %}{% if st in ['unavailable', 'unknown'] or st == 'alarm' or e not in ['none', 'unavailable', 'unknown'] %}red{% elif st == 'running' %}light-blue{% elif st == 'paused' %}orange{% elif st == 'standby' %}green{% else %}grey{% endif %}`,
@@ -435,30 +410,113 @@ const awMake = (c, parts) => {
         icon: `{% if is_state('${door}', 'open') %}mdi:door-open{% else %}mdi:door{% endif %}`,
         icon_color: `{% if is_state('${door}', 'open') %}orange{% else %}green{% endif %}`,
         tap_action: { action: "more-info", entity: door } },
+    ],
+    card_mod: { style: `
+      @keyframes aw-led-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0.28; } }
+      ha-card {
+        ${statePre}
+        {% set rm = states('${rem}') | float(0) %}
+        {% set tt = states('${tot}') | float(0) %}
+        {% set frac = ((tt - rm) / tt) if tt > 0 else 0 %}
+        {% set frac = [[frac, 0] | max, 1] | min %}
+        {% set mins = rm | int %}
+        {% set clock = (mins // 60) ~ ':' ~ ('%02d' | format(mins % 60)) %}
+        {% if fault %}{% set led = 'EEEE' %}{% set ledc = '#ff6b6b' %}{% set leda = 'aw-led-blink 0.8s steps(1) infinite' %}{% set glow = '255, 90, 90' %}
+        {% elif st == 'running' %}{% set led = clock %}{% set ledc = '#7cfc98' %}{% set leda = 'none' %}{% set glow = '80, 240, 130' %}
+        {% elif st == 'paused' %}{% set led = clock %}{% set ledc = '#ffc66d' %}{% set leda = 'aw-led-blink 1.4s steps(1) infinite' %}{% set glow = '255, 180, 80' %}
+        {% elif st == 'standby' %}{% set led = clock %}{% set ledc = '#8fe4a3' %}{% set leda = 'none' %}{% set glow = '120, 220, 150' %}
+        {% else %}{% set led = '--:--' %}{% set ledc = '#67727c' %}{% set leda = 'none' %}{% set glow = '70, 90, 110' %}{% endif %}
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(165deg, #0d1116 0%, #161d23 55%, #0f151a 100%) !important;
+        --ha-card-background: #0d1116;
+        border: 1px solid #05070a !important;
+        border-radius: 12px !important;
+        box-shadow: inset 0 2px 10px rgba(0,0,0,0.95), inset 0 0 0 1px rgba(255,255,255,0.03), 0 1px 0 rgba(255,255,255,0.4) !important;
+        min-height: 112px;
+        display: flex; align-items: flex-start; justify-content: center;
+        padding: 8px 8px 0;
+        --chip-background: transparent;
+        --chip-box-shadow: none;
+        --chip-border-width: 0px;
+        --chip-border-color: transparent;
+        --chip-height: 22px;
+        --chip-icon-size: 18px;
+        --chip-spacing: 6px;
+        --aw-led-text: "{{ led }}";
+        --aw-led-color: {{ ledc }};
+        --aw-led-anim: {{ leda }};
+        --aw-frac: {{ frac | round(3) }};
+        --aw-bar: {{ 'block' if st in ['running', 'paused'] else 'none' }};
+        --aw-glow: {{ glow }};
+        filter: drop-shadow(0 0 4px rgba({{ glow }}, 0.5));
+      }
+      .chip-container { flex-wrap: nowrap !important; }
+      /* the big time / EEEE digits — centred, real seven-seg text-shadow glow */
+      ha-card::before {
+        content: var(--aw-led-text, "--:--");
+        position: absolute; left: 0; right: 0; top: 26px; bottom: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 34px; font-weight: 700; letter-spacing: 3px;
+        color: var(--aw-led-color, #67727c);
+        text-shadow: 0 0 9px currentColor, 0 0 2px currentColor;
+        white-space: nowrap;
+        animation: var(--aw-led-anim, none);
+        z-index: 1; pointer-events: none;
+      }
+      /* progress: a thin inset track along the bottom of the screen while a wash runs */
+      ha-card::after {
+        content: '';
+        position: absolute; left: 10px; right: 10px; bottom: 7px; height: 4px;
+        border-radius: 2px;
+        background: linear-gradient(90deg,
+          rgb(var(--aw-glow, 120,130,140)) calc(var(--aw-frac, 0) * 100%),
+          rgba(255,255,255,0.12) calc(var(--aw-frac, 0) * 100%));
+        display: var(--aw-bar, none);
+        z-index: 2;
+      }` },
+  };
+
+  // the hero: porthole on the left, the big LED screen on the right, side by side, centred.
+  // (No awGap — it targets the `.`-keyed style object of each cell, and the LED cell's style is
+  // a plain string; and the hero is the first row, so it needs no top gap anyway.)
+  const hero = { type: "horizontal-stack", cards: [portholeCard, ledScreen] };
+
+  // ── the conditional-status row: a slim chip row for the statuses that only sometimes apply
+  // (delayed start, load, detergent-low, softener-low). Each renders NOTHING when it doesn't
+  // apply (empty icon/content + transparent bg), so normally this row is invisible — the LED
+  // already carries the always-present state + door. It appears only when there's something to
+  // say, so it never clutters and never truncates.
+  const heroExtras = {
+    type: "custom:mushroom-chips-card",
+    alignment: "center",
+    chips: [
       // delayed start (only when a delay is set)
       { type: "template",
         icon: `{% if states('${delay}') | int(0) > 0 %}mdi:timer-sand{% endif %}`,
         icon_color: "blue",
-        content: `{% set d = states('${delay}') | int(0) %}{% if d > 0 %}{{ d }}h{% endif %}`,
+        content: `{% set d = states('${delay}') | int(0) %}{% if d > 0 %}{{ d }}h delay{% endif %}`,
         tap_action: { action: "more-info", entity: delay } },
       // load present (only when a weight is set)
       { type: "template",
         icon: `{% if states('${weight}') | float(0) > 0 %}mdi:tshirt-crew{% endif %}`,
         icon_color: "blue-grey",
-        content: `{% set w = states('${weight}') | float(0) %}{% if w > 0 %}{{ w | round(1) }}kg{% endif %}`,
+        content: `{% set w = states('${weight}') | float(0) %}{% if w > 0 %}{{ w | round(1) }} kg{% endif %}`,
         tap_action: { action: "more-info", entity: weight } },
       // detergent low
       { type: "template",
         icon: `{% if is_state('binary_sensor.${base}_detergent_state', 'on') %}mdi:cup-water{% endif %}`,
         icon_color: "amber",
+        content: `{% if is_state('binary_sensor.${base}_detergent_state', 'on') %}Detergent low{% endif %}`,
         tap_action: { action: "more-info", entity: `binary_sensor.${base}_detergent_state` } },
       // softener low
       { type: "template",
         icon: `{% if is_state('binary_sensor.${base}_softener_state', 'on') %}mdi:flower{% endif %}`,
         icon_color: "pink",
+        content: `{% if is_state('binary_sensor.${base}_softener_state', 'on') %}Softener low{% endif %}`,
         tap_action: { action: "more-info", entity: `binary_sensor.${base}_softener_state` } },
     ],
-    // flatten the chips onto the white fascia: no pill backgrounds, dark ink, tight spacing
     card_mod: { style: `
       ha-card, :host {
         background: transparent !important;
@@ -467,16 +525,15 @@ const awMake = (c, parts) => {
         --chip-background: transparent;
         --chip-box-shadow: none;
         --chip-border-width: 0px;
-        --chip-height: 26px;
+        --chip-height: 24px;
         --chip-icon-size: 18px;
         --chip-font-size: 0.78rem;
-        --chip-spacing: 2px;
-        margin-top: -4px;
-        padding: 0 8px 2px;
+        --chip-spacing: 8px;
+        padding: 0 8px;
       }` },
   };
 
-  const cards = [hero, heroChips];
+  const cards = [hero, heroExtras];
 
   if (parts.controls) {
     cards.push(awGap(4, { type: "horizontal-stack", cards: [
@@ -493,20 +550,20 @@ const awMake = (c, parts) => {
     ] }));
   }
 
-  const tempSelect = awSelect(sel("temperature"), status, "Wash temperature", "mdi:thermometer", "red",
+  const tempSelect = awSelect(sel("temperature"), status, "Wash temp", "mdi:thermometer", "red",
     "aw-set-glow 2.5s ease-in-out infinite",
     `@keyframes aw-set-glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.5) drop-shadow(0 0 4px currentColor); } }`);
-  const spinSelect = awSelect(sel("spin_speed"), status, "Spin speed", "mdi:rotate-3d-variant", "light-blue",
+  const spinSelect = awSelect(sel("spin_speed"), status, "Spin", "mdi:rotate-3d-variant", "light-blue",
     "aw-set-spin 3s linear infinite",
     `@keyframes aw-set-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`);
 
   if (parts.settings) {
     cards.push(awGap(14, { type: "horizontal-stack", cards: [tempSelect, spinSelect] }));
     cards.push(awGap(6, { type: "horizontal-stack", cards: [
-      awSelect(sel("detergent"), status, "Detergent amount", "mdi:chart-bubble", "teal",
+      awSelect(sel("detergent"), status, "Detergent", "mdi:chart-bubble", "teal",
         "aw-set-bob 2.8s ease-in-out infinite",
         `@keyframes aw-set-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }`),
-      awSelect(sel("softener"), status, "Softener amount", "mdi:flower-tulip-outline", "pink",
+      awSelect(sel("softener"), status, "Softener", "mdi:flower-tulip-outline", "pink",
         "aw-set-sway 3.4s ease-in-out infinite",
         `@keyframes aw-set-sway { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }`),
     ] }));
@@ -601,8 +658,9 @@ everything else is derived. The card is drawn as the machine's own white fascia:
 with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (blinking when
 paused, a red "EEEE" when the machine faults or goes offline), a rotary programme dial that
 turns to the selected programme, and embossed Start/Pause/Stop buttons with live LED dots —
-above a compact row of status chips (running/paused/standby & fault, door open/closed,
-delayed start, load, low detergent / softener).`;
+with the machine-state + door indicators tucked inside the LED bezel, a progress track along
+its bottom edge, and a slim conditional row that surfaces the occasional statuses (delayed
+start, load, low detergent / softener) only when they apply.`;
 
 registerKind("advanced-washer", {
   ...AW_COMMON,
@@ -626,7 +684,7 @@ registerKind("advanced-washer-medium", {
 registerKind("advanced-washer-small", {
   ...AW_COMMON,
   label: "Advanced Washing Machine (small)",
-  desc: "The animated porthole hero alone — LED time display, status-chip row, progress bar, warnings",
+  desc: "The animated porthole hero alone — beside the big LED screen (time, state + door glyphs, progress, EEEE faults)",
   docs: AW_DOCS,
   make: (c) => awMake(c, { rows: 3 }),
 });

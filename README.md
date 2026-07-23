@@ -77,7 +77,7 @@ there the draw is the only signal available.
 |---|---|---|---|
 | **Advanced Washing Machine (large)** | `custom:anim-advanced-washer-card` | — | The whole machine on one white fascia — porthole, LED display, programme dial, Start/Pause/Stop, every setting, toggle and usage stat |
 | **Advanced Washing Machine (medium)** | `custom:anim-advanced-washer-medium-card` | — | Porthole hero + LED display, programme dial and Start/Pause/Stop, temperature & spin, and the everyday toggles |
-| **Advanced Washing Machine (small)** | `custom:anim-advanced-washer-small-card` | — | The animated porthole hero alone — LED time display, status-chip row, progress bar, warnings |
+| **Advanced Washing Machine (small)** | `custom:anim-advanced-washer-small-card` | — | The animated porthole hero alone — beside the big LED screen (time, state + door glyphs, progress, EEEE faults) |
 | **Animated 3D Printer** | `custom:anim-printer-3d-card` | `icon` `color` `glow` `speed` `variant` `max_value` `active` | Nozzle rasters layer by layer while printing — optional progress beam and DONE badge |
 | **Animated Air Purifier** | `custom:anim-air-purifier-card` | `icon` `color` `glow` `speed` `active` | Motor hum breath with clean-air rings rippling out while it runs |
 | **Animated Air Quality** | `custom:anim-air-quality-card` | `variant` `icon` `graph` `graph_hours` | AQI tile banded good→hazardous, glow + halo escalating with severity; optional 24 h sparkline |
@@ -153,8 +153,9 @@ everything else is derived. The card is drawn as the machine's own white fascia:
 with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (blinking when
 paused, a red "EEEE" when the machine faults or goes offline), a rotary programme dial that
 turns to the selected programme, and embossed Start/Pause/Stop buttons with live LED dots —
-above a compact row of status chips (running/paused/standby & fault, door open/closed,
-delayed start, load, low detergent / softener).
+with the machine-state + door indicators tucked inside the LED bezel, a progress track along
+its bottom edge, and a slim conditional row that surfaces the occasional statuses (delayed
+start, load, low detergent / softener) only when they apply.
 
 The large size shows everything and is happy as the only card on a dashboard; medium keeps
 the dial/button fascia, temperature/spin and the everyday toggles; small is the hero alone.
@@ -170,8 +171,9 @@ everything else is derived. The card is drawn as the machine's own white fascia:
 with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (blinking when
 paused, a red "EEEE" when the machine faults or goes offline), a rotary programme dial that
 turns to the selected programme, and embossed Start/Pause/Stop buttons with live LED dots —
-above a compact row of status chips (running/paused/standby & fault, door open/closed,
-delayed start, load, low detergent / softener).
+with the machine-state + door indicators tucked inside the LED bezel, a progress track along
+its bottom edge, and a slim conditional row that surfaces the occasional statuses (delayed
+start, load, low detergent / softener) only when they apply.
 
 </details>
 
@@ -184,8 +186,9 @@ everything else is derived. The card is drawn as the machine's own white fascia:
 with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (blinking when
 paused, a red "EEEE" when the machine faults or goes offline), a rotary programme dial that
 turns to the selected programme, and embossed Start/Pause/Stop buttons with live LED dots —
-above a compact row of status chips (running/paused/standby & fault, door open/closed,
-delayed start, load, low detergent / softener).
+with the machine-state + door indicators tucked inside the LED bezel, a progress track along
+its bottom edge, and a slim conditional row that surfaces the occasional statuses (delayed
+start, load, low detergent / softener) only when they apply.
 
 </details>
 
