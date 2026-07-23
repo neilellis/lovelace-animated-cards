@@ -28,7 +28,14 @@
 // fascia goes grey and stops taking taps — like the real machine, nothing works until the
 // panel wakes. `status` is the machine-status sensor; stats/hero stay readable.
 const awDisabled = (status) => `
-        {% if states('${status}') in ['off', 'unavailable', 'unknown'] %}pointer-events: none; opacity: 0.78; filter: saturate(0.6);{% endif %}`;
+        {% set st = states('${status}') %}
+        {% if st in ['unavailable', 'unknown'] %}
+          /* OFFLINE / unreachable: every control fully inactive + clearly greyed out */
+          pointer-events: none; opacity: 0.35; filter: saturate(0.05) grayscale(0.7) brightness(0.98);
+        {% elif st == 'off' %}
+          /* switched off but reachable: calm, legible, not dead */
+          pointer-events: none; opacity: 0.78; filter: saturate(0.6);
+        {% endif %}`;
 
 // The machine renders as ONE white fascia (a vertical-stack-in-card). The wrapper's
 // gradient is the ONLY surface: every child ha-card must be genuinely transparent
