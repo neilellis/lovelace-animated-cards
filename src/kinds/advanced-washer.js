@@ -331,13 +331,13 @@ const awSegLabel = (text, rgb, mt) => ({
 // awDialFace's `--aw-dial * 24deg`); the current speed reads under the knob ("1000 rpm" /
 // "No spin"). Tap opens more-info to change — matching the programme dial's behaviour. ──────
 const AW_SPINS = ["none", "600", "800", "1000", "1200", "1400"];
-const awSpinDial = (spin, status) => ({
+const awSpinDial = (spin, status, hash) => ({
   type: "custom:mushroom-template-card",
   entity: spin,
   primary: `{% set v = states('${spin}') %}{% if v == 'none' %}No spin{% elif v in ['unavailable', 'unknown'] %}—{% else %}{{ v }} rpm{% endif %}`,
   icon: "mdi:knob",
   layout: "vertical",
-  tap_action: { action: "more-info" },
+  tap_action: { action: "navigate", navigation_path: hash },
   card_mod: { style: {
     "ha-tile-icon$": awDialFace(".container", "width: 52px !important; height: 52px !important;"),
     "mushroom-shape-icon$": awDialFace(".shape", "--icon-size: 52px !important; width: var(--icon-size) !important; height: var(--icon-size) !important;"),
@@ -360,13 +360,13 @@ const awSpinDial = (spin, status) => ({
 // ── the wash-temperature dial — same knob as spin (Neil: "temp can be a dial too"). Pointer
 // turns to the temperature's index; the value reads under the knob ("Cold" / "40\u00b0C").
 const AW_TEMPS = ["cold", "20", "30", "40", "60", "90"];
-const awTempDial = (temp, status) => ({
+const awTempDial = (temp, status, hash) => ({
   type: "custom:mushroom-template-card",
   entity: temp,
   primary: `{% set v = states('${temp}') %}{% if v == 'cold' %}Cold{% elif v in ['unavailable', 'unknown'] %}\u2014{% else %}{{ v }}\u00b0C{% endif %}`,
   icon: "mdi:knob",
   layout: "vertical",
-  tap_action: { action: "more-info" },
+  tap_action: { action: "navigate", navigation_path: hash },
   card_mod: { style: {
     "ha-tile-icon$": awDialFace(".container", "width: 52px !important; height: 52px !important;"),
     "mushroom-shape-icon$": awDialFace(".shape", "--icon-size: 52px !important; width: var(--icon-size) !important; height: var(--icon-size) !important;"),
@@ -384,6 +384,64 @@ const awTempDial = (temp, status) => ({
         --card-primary-font-weight: 600;
       }`,
   } },
+});
+
+// ── the bottom pop-over ("Bubble card style", Neil): tapping a dial opens a Bubble Card
+// standalone pop-up that slides up from the bottom showing ONLY that select's options — no
+// history graph, no attributes, no more-info. Bubble Card v3.x (installed on the box) opens a
+// `card_type: pop-up` when `location.hash === hash`; the dial's tap_action navigates to that
+// hash. `close_on_click` dismisses the sheet on any option tap, so one HA tap_action can both
+// select AND close. The pop-up cards render nothing inline (hash inactive), so they sit
+// harmlessly in the fascia's card list.
+//
+// One option button: a big legible pill on the dark sheet. The live option is filled solid
+// with the setting's accent (temp red / spin light-blue), its label white; the rest are
+// outlined with a dark-grey label. Tap → select.select_option.
+const awSheetOption = (entity, rgb, o) => ({
+  type: "custom:mushroom-template-card",
+  entity,
+  primary: o.label,
+  tap_action: {
+    action: "call-service",
+    service: "select.select_option",
+    target: { entity_id: entity },
+    data: { option: o.value },
+  },
+  card_mod: { style: {
+    ".": `
+      ha-tile-icon, mushroom-shape-icon { display: none !important; }
+      ha-tile-info { padding: 0 !important; width: 100% !important; box-sizing: border-box; }
+      ha-tile-info [slot="primary"] {
+        display: block !important; width: 100% !important;
+        font-size: 1rem !important; font-weight: 700 !important; line-height: 1.1 !important;
+        text-align: center !important; white-space: nowrap !important;
+        color: {% if is_state('${entity}', '${o.value}') %}#0d1116{% else %}#e7ecef{% endif %} !important;
+      }
+      ha-card {
+        --ha-card-background: transparent;
+        background: {% if is_state('${entity}', '${o.value}') %}rgb(${rgb}){% else %}rgba(255,255,255,0.05){% endif %} !important;
+        border: 2px solid rgb(${rgb}) !important;
+        border-radius: 14px !important;
+        padding: 16px 6px !important;
+        min-height: 0 !important;
+        box-shadow: {% if is_state('${entity}', '${o.value}') %}0 0 12px rgba(${rgb}, 0.6){% else %}none{% endif %} !important;
+      }` } },
+});
+
+// the pop-over itself — a titled Bubble Card sheet holding a 3-across grid of option buttons.
+const awPopup = (hash, title, icon, entity, rgb, options) => ({
+  type: "custom:bubble-card",
+  card_type: "pop-up",
+  hash,
+  name: title,
+  icon,
+  show_header: true,
+  close_on_click: true,
+  bg_color: "#12181e",
+  cards: [
+    { type: "grid", columns: 3, square: false,
+      cards: options.map((o) => awSheetOption(entity, rgb, o)) },
+  ],
 });
 
 // ── a feature toggle that breathes gently while ON (motion = "this option is active") ────
@@ -715,8 +773,23 @@ const awMake = (c, parts) => {
   // The four programme settings, tactile: segmented "radio" rows (icons to fit phone width)
   // + a rotary spin dial. Per-setting accent identity kept (temp red / spin dial / detergent
   // teal / softener pink). Live options are fixed by the Tuya integration.
-  const spinDial = awSpinDial(sel("spin_speed"), status);
-  const tempDial = awTempDial(sel("temperature"), status);
+  // Tapping a dial opens a bottom pop-over (Bubble Card) of ONLY that select's options.
+  const tempHash = `#aw-temp-${base}`;
+  const spinHash = `#aw-spin-${base}`;
+  const TEMP_RGB = "244, 67, 54";   // red   — the wash-temperature accent
+  const SPIN_RGB = "3, 169, 244";   // light-blue — the spin accent
+  const spinDial = awSpinDial(sel("spin_speed"), status, spinHash);
+  const tempDial = awTempDial(sel("temperature"), status, tempHash);
+  const tempPopup = awPopup(tempHash, "Wash temperature", "mdi:thermometer", sel("temperature"), TEMP_RGB, [
+    { value: "cold", label: "Cold" }, { value: "20", label: "20°C" },
+    { value: "30", label: "30°C" }, { value: "40", label: "40°C" },
+    { value: "60", label: "60°C" }, { value: "90", label: "90°C" },
+  ]);
+  const spinPopup = awPopup(spinHash, "Spin speed", "mdi:rotate-3d-variant", sel("spin_speed"), SPIN_RGB, [
+    { value: "none", label: "No spin" }, { value: "600", label: "600" },
+    { value: "800", label: "800" }, { value: "1000", label: "1000" },
+    { value: "1200", label: "1200" }, { value: "1400", label: "1400" },
+  ]);
   // dose scale (off / auto / less / standard / more) as single glyphs: ○ = off, A = auto,
   // 1/2/3 = less/standard/more. No motif — the group label above + the accent fill carry the
   // identity, so detergent and softener share the glyph set (Neil: "no per-value labels").
@@ -736,6 +809,7 @@ const awMake = (c, parts) => {
     // Row 1: wash temp + spin dials. Row 2: two segmented controls (detergent | softener), each
     // a joined bar with a small label above. Kept slim + untruncated at 390/360.
     cards.push(awGap(14, { type: "horizontal-stack", cards: [tempDial, spinDial] }));
+    cards.push(tempPopup, spinPopup);
     // vertical-stack = label row over bar row; the two groups sit 50/50 side by side so each
     // label centres over its own bar. The 10px top margin (on the labels) opens the gap from
     // the dial row. No awGap here (it would push the bar cells down off their labels).
@@ -752,6 +826,7 @@ const awMake = (c, parts) => {
   } else if (parts.everyday) {
     // medium: the two settings everyone actually changes, no title chrome
     cards.push(awGap(14, { type: "horizontal-stack", cards: [tempDial, spinDial] }));
+    cards.push(tempPopup, spinPopup);
   }
 
   if (parts.options) {
