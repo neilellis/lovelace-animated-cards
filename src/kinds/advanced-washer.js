@@ -410,6 +410,11 @@ const awMake = (c, parts) => {
         icon: `{% if is_state('${door}', 'open') %}mdi:door-open{% else %}mdi:door{% endif %}`,
         icon_color: `{% if is_state('${door}', 'open') %}orange{% else %}green{% endif %}`,
         tap_action: { action: "more-info", entity: door } },
+      // cycle: programme No + phase step, printed small on the screen (moved here from the old
+      // stats footer). Blank unless a programme is loaded, so it vanishes when the machine is off.
+      { type: "template",
+        content: `{% set st = states('${status}') %}{% if st in ['running', 'paused', 'standby'] %}P{{ states('${s("selected_program")}') }}\u00b7S{{ states('${s("current_program_phase")}') }}{% endif %}`,
+        tap_action: { action: "more-info", entity: s("selected_program") } },
     ],
     card_mod: { style: `
       @keyframes aw-led-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0.28; } }
@@ -443,6 +448,8 @@ const awMake = (c, parts) => {
         --chip-height: 22px;
         --chip-icon-size: 18px;
         --chip-spacing: 6px;
+        --primary-text-color: #9fb4ad;
+        --secondary-text-color: #9fb4ad;
         --aw-led-text: "{{ led }}";
         --aw-led-color: {{ ledc }};
         --aw-led-anim: {{ leda }};
@@ -452,6 +459,12 @@ const awMake = (c, parts) => {
         filter: drop-shadow(0 0 4px rgba({{ glow }}, 0.5));
       }
       .chip-container { flex-wrap: nowrap !important; }
+      /* the cycle text chip reads as small screen print, not a label */
+      mushroom-template-chip .content, mushroom-chip .content {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 11px; letter-spacing: 1px; color: #9fb4ad;
+        text-shadow: 0 0 5px rgba(120, 200, 170, 0.5);
+      }
       /* the big time / EEEE digits — centred, real seven-seg text-shadow glow */
       ha-card::before {
         content: var(--aw-led-text, "--:--");
@@ -596,26 +609,9 @@ const awMake = (c, parts) => {
     ] }));
   }
 
-  if (parts.stats) {
-    cards.push(awGap(14, { type: "horizontal-stack", cards: [
-      // NBSPs inside each unit group: at phone width the secondary wraps between groups
-      // ("0.2 kWh" / "· 22 L"), never leaving a dangling "·" at a line end
-      awStat(s("daily_energy"), status, "Today", "mdi:lightning-bolt", "amber",
-        `{{ states('${s("daily_energy")}') | float(0) | round(1) }} kWh · {{ states('${s("daily_water_consumption")}') | float(0) | round(0) }} L`,
-        "aw-stat-flick 1.6s ease-in-out infinite",
-        `@keyframes aw-stat-flick { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.6); } }`),
-      awStat(s("electricity_consumption"), status, "All time", "mdi:counter", "deep-purple",
-        `{{ states('${s("electricity_consumption")}') | float(0) | round(1) }} kWh · {{ states('${s("water_consumption")}') | float(0) | round(0) }} L`,
-        "aw-stat-tick 2s steps(4) infinite",
-        `@keyframes aw-stat-tick { from { transform: translateY(0); } to { transform: translateY(-2px); } }`),
-      // "Cycle", not "Programme": a single unbreakable 9-char word cannot fit a 3-across
-      // footer cell at phone width — it clipped mid-word at every size tried
-      awStat(s("selected_program"), status, "Cycle", "mdi:tshirt-crew", "indigo",
-        `No. {{ states('${s("selected_program")}') }} · step {{ states('${s("current_program_phase")}') }}`,
-        "aw-stat-bob 3s ease-in-out infinite",
-        `@keyframes aw-stat-bob { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }`),
-    ] }));
-  }
+  // Stats footer removed 2026-07-23 (Neil): the cycle info moved into the LED screen, and the
+  // Today/All-time energy readouts are covered by the "Energy — last 7 days" graph on the subview.
+  // `parts.stats` is now a no-op; kept in the size configs harmlessly.
 
   // One card, not a stack of tiles: the wrapper's gradient is the only painted surface —
   // every child is AW_FLAT-transparent, so the porthole, buttons and settings all sit

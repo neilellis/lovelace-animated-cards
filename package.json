@@ -1,6 +1,6 @@
 {
   "name": "lovelace-animated-cards",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Every Anashost/HA-Animated-cards design as a real, pickable Lovelace card (Mushroom + card-mod)",
   "type": "module",
   "scripts": {
