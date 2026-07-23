@@ -5,6 +5,12 @@ as a **real, pickable Lovelace card**: install via HACS, open any dashboard's *A
 dialog, search "Animated", pick an entity in the visual editor — done. No YAML pasting,
 no hand-editing entity ids into card-mod templates.
 
+![Lights, accent strips, curtains, scenes and occupancy radar cards on a live dashboard](docs/screenshot-lights-scenes.jpg)
+
+![Climate, metered plugs, laundry and media cards on a live dashboard](docs/screenshot-climate-media.jpg)
+
+*A live dashboard built entirely from these cards — every tile above is a `custom:anim-*-card`.*
+
 > [!IMPORTANT]
 > **All animation designs are the work of [@Anasbox](https://www.youtube.com/@anasbox)**
 > (GitHub: [Anashost](https://github.com/Anashost)). This project only re-packages his
@@ -46,9 +52,12 @@ Edit any dashboard → *Add card* → search **Animated**. Each device type is i
 a generic `custom:animated-card` with a *kind* dropdown that can render every design.
 Some upstream designs ship as a `variant` option on their kind rather than a separate card.
 
-Cards animate only while the entity is active and dim when idle. Where a device hangs off
-a smart plug whose switch state lies (some Tuya plugs), the switch/fan kinds accept an
-optional power sensor + threshold and derive "on" from the actual draw.
+Cards animate only while the entity is active and dim when idle. Switch and fan cards also
+show live wattage beside the state ("On · 489 W"), auto-discovering any `device_class: power`
+entity on the same device — `power_entity` overrides the lookup, `hide_power` opts out. The
+kinds whose whole premise is a dumb appliance on a metered plug (`washer-plug`, `dishwasher`,
+`dryer`, `washer-dryer-combo`, `fridge`, `charger`) take a `power_entity` of their own, since
+there the draw is the only signal available.
 
 ## Card index
 

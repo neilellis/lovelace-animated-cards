@@ -11,8 +11,17 @@ jobs:
   hacs:
     name: HACS
     runs-on: ubuntu-latest
+    # Advisory only. This is the *default-store inclusion* check; we install as a HACS
+    # CUSTOM repository, so a red X here breaks nothing. And one of its checks can never
+    # pass: `license` keys off GitHub's detected SPDX id, GitHub's licensee only knows the
+    # licences vendored in github/choosealicense.com (cc-by-4.0, cc-by-sa-4.0, cc0-1.0 —
+    # NOT cc-by-nc-sa-4.0), and upstream's ShareAlike forbids relicensing away from
+    # CC BY-NC-SA 4.0. `license` is also absent from the action's ignorable-checks list,
+    # so continue-on-error is the only lever. Still run it: hacsjson/filename/brands
+    # regressions are worth seeing.
+    continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: hacs/action@main
         with:
           category: plugin
@@ -21,8 +30,8 @@ jobs:
     name: Build is in sync
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
       # build.mjs concatenates src/ into dist/animated-cards.js (with a `node --check`
