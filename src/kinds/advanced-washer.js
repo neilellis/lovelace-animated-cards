@@ -220,27 +220,33 @@ const awDial = (prog, status) => ({
   } },
 });
 
-// ── a compact segmented / "radio" cell — one selectable option on the fascia ─────────────
-// Replaces the tall mushroom-select dropdowns (Neil: "radio buttons, use icons to shrink
-// them"). A row of these is a real segmented control: the cell whose value is live is tinted
-// with the setting's accent (a filled selected-pill); the rest carry a faint outline so they
-// read as buttons on the white fascia. Icon-driven so 5–6 fit across a phone (DESIGN.md width
-// trap — verified at 390 AND 360). Tap a cell → select.select_option; the whole row greys +
-// stops taking taps when the panel is off (awDisabled). o = { value, icon?, label? }: give an
-// icon, a label, or both (both → icon-over-label, vertical). rgb = the setting's accent.
+// ── ONE cell of a TRADITIONAL segmented control — one selectable option ───────────────────
+// A row of these is a single joined bar (not separate pills): the cells ABUT (the parent row's
+// gap is zeroed in awSeg), a thin divider sits between neighbours, and only the whole bar's
+// outer corners are rounded. Each cell shows its value as a single glyph (o.glyph) — the motif
+// is gone (Neil: "no per-value labels"); the group's identity comes from the label above + the
+// accent fill. The live value's cell is filled solid with the setting's accent (teal/pink),
+// its glyph white; the rest are flat + unfilled with a dark-grey glyph. Tap → select.select_option;
+// the whole row greys + stops taking taps when the panel is off (awDisabled).
 //
-// template-card is TILE-based (DESIGN.md rule 2): the icon is ha-tile-icon/.container and the
-// primary text is SLOTTED into ha-tile-info (rule 3) — so sizing the label is done from the
-// host block on the slotted span, and the unused half is display:none'd.
-const awSegCell = (entity, status, rgb, o) => {
+// pos ∈ {first, mid, last} drives the borders that build the joined bar:
+//   every cell: top + bottom + right border (the right border of a non-last cell = the divider);
+//   first cell: + left border and a LEFT-rounded radius; last cell: a RIGHT-rounded radius.
+// So adjacent cells share one 1px line (right border vs the next cell's borderless left edge),
+// and the bar reads as one pill with square inner corners.
+//
+// template-card is TILE-based (DESIGN.md rule 2): the icon is hidden and the glyph is SLOTTED
+// into ha-tile-info (rule 3) — so it's sized/centred from the host block on the slotted span.
+const AW_SEG_BORDER = "rgba(35, 40, 45, 0.22)";
+const awSegCell = (entity, status, rgb, o, pos) => {
   const active = `is_state('${entity}', '${o.value}')`;
+  const R = "9px";
+  const radius = pos === "first" ? `${R} 0 0 ${R}` : pos === "last" ? `0 ${R} ${R} 0` : "0";
+  const leftBorder = pos === "first" ? `1px solid ${AW_SEG_BORDER}` : "none";
   return {
     type: "custom:mushroom-template-card",
     entity,
-    icon: o.icon || "mdi:blank",
-    primary: o.label || "",
-    icon_color: `{% if ${active} %}rgb(${rgb}){% else %}rgb(150, 158, 165){% endif %}`,
-    layout: "vertical",
+    primary: o.glyph,
     tap_action: {
       action: "call-service",
       service: "select.select_option",
@@ -249,19 +255,15 @@ const awSegCell = (entity, status, rgb, o) => {
     },
     card_mod: { style: {
       ".": `
-        ${o.icon ? "" : "ha-tile-icon, mushroom-shape-icon { display: none !important; }"}
-        ${o.label ? "" : "ha-tile-info, mushroom-state-info { display: none !important; }"}
-        ha-tile-icon { --tile-icon-size: 24px; --mdc-icon-size: 20px; width: 24px; height: 24px; margin: 0 !important; }
-        mushroom-shape-icon { --icon-size: 24px; }
-        /* the slotted primary: give the info column the FULL cell width (vertical layout
-           otherwise collapses it to a few px and clips the label), centre + shrink it, never
-           wrap or ellipsize. */
+        ha-tile-icon, mushroom-shape-icon { display: none !important; }
+        /* the slotted glyph: full cell width, centred, single char, never wrap/clip */
         ha-tile-info { padding: 0 !important; width: 100% !important; box-sizing: border-box; }
         ha-tile-info [slot="primary"] {
           display: block !important; width: 100% !important;
-          font-size: 0.84rem !important; font-weight: 700 !important; line-height: 1 !important;
+          font-size: 0.92rem !important; font-weight: 700 !important; line-height: 1 !important;
           text-align: center !important; white-space: nowrap !important; text-overflow: clip !important;
           overflow: visible !important;
+          color: {% if ${active} %}#ffffff{% else %}rgb(89, 99, 107){% endif %} !important;
         }
         ha-card {
           ${awDisabled(status)}
@@ -269,24 +271,59 @@ const awSegCell = (entity, status, rgb, o) => {
           --ha-card-background: transparent;
           background: transparent !important;
           box-shadow: none !important;
-          border: 1px solid rgba(35, 40, 45, 0.18) !important;
-          border-radius: 10px;
-          padding: 5px 1px !important;
+          border-top: 1px solid ${AW_SEG_BORDER} !important;
+          border-bottom: 1px solid ${AW_SEG_BORDER} !important;
+          border-right: 1px solid ${AW_SEG_BORDER} !important;
+          border-left: ${leftBorder} !important;
+          border-radius: ${radius} !important;
+          padding: 6px 0 !important;
           min-height: 0 !important;
-          --spacing: 2px;
+          --spacing: 0;
           {% if ${active} %}
-            background: rgba(${rgb}, 0.20) !important;
-            --ha-card-background: rgba(${rgb}, 0.20);
-            border: 1.5px solid rgba(${rgb}, 0.9) !important;
+            background: rgb(${rgb}) !important;
+            --ha-card-background: rgb(${rgb});
+            border-color: rgb(${rgb}) !important;
           {% endif %}
         }` } },
   };
 };
 
-// a full row of segmented cells (a horizontal-stack splits its children into equal columns).
+// a full segmented bar — a horizontal-stack of abutting cells. The stack normally inserts a
+// margin between children (its `#root > *` carry `margin: 0 4px`), which would break "no gap
+// between cells", so card_mod the stack itself to zero it. flex:1 keeps the cells equal-width.
 const awSeg = (entity, status, rgb, options) => ({
   type: "horizontal-stack",
-  cards: options.map((o) => awSegCell(entity, status, rgb, o)),
+  cards: options.map((o, i) =>
+    awSegCell(entity, status, rgb, o, i === 0 ? "first" : i === options.length - 1 ? "last" : "mid")),
+  card_mod: { style: `
+    #root { gap: 0 !important; }
+    #root > * { margin: 0 !important; }` },
+});
+
+// the small text label that sits ABOVE a segmented group ("Detergent" / "Softener") — a
+// centred, accent-tinted caption. No entity, no tap: a display-only mushroom-template-card
+// with the icon hidden and only the slotted primary shown, sized down. `mt` = top margin that
+// opens the gap from the dial row above (this is the top leaf of the settings sub-block).
+const awSegLabel = (text, rgb, mt) => ({
+  type: "custom:mushroom-template-card",
+  primary: text,
+  card_mod: { style: {
+    ".": `
+      ha-tile-icon, mushroom-shape-icon { display: none !important; }
+      ha-tile-info { padding: 0 !important; width: 100% !important; box-sizing: border-box; }
+      ha-tile-info [slot="primary"] {
+        display: block !important; width: 100% !important;
+        font-size: 0.74rem !important; font-weight: 700 !important; line-height: 1 !important;
+        letter-spacing: 0.4px; text-transform: uppercase;
+        text-align: center !important; white-space: nowrap !important;
+        color: rgb(${rgb}) !important;
+      }
+      ha-card {
+        ${AW_FLAT}
+        padding: 0 0 4px !important;
+        min-height: 0 !important;
+        margin-top: ${mt}px !important;
+      }` } },
 });
 
 // ── the spin-speed rotary DIAL — the same knob as the programme dial (awDial), bound to the
@@ -680,29 +717,38 @@ const awMake = (c, parts) => {
   // teal / softener pink). Live options are fixed by the Tuya integration.
   const spinDial = awSpinDial(sel("spin_speed"), status);
   const tempDial = awTempDial(sel("temperature"), status);
-  // dose scale (off / auto / less / standard / more): motif icon + a dose glyph, so the amount
-  // reads at a glance where the word ("standard") never could at this width.
-  const detSeg = (st) => awSeg(sel("detergent"), st, "0, 150, 136", [
-    { value: "off", icon: "mdi:water-off" },
-    { value: "auto", icon: "mdi:water-sync", label: "A" },
-    { value: "less", icon: "mdi:water", label: "1" },
-    { value: "standard", icon: "mdi:water", label: "2" },
-    { value: "more", icon: "mdi:water", label: "3" },
-  ]);
-  const softSeg = (st) => awSeg(sel("softener"), st, "233, 30, 99", [
-    { value: "off", icon: "mdi:flower-outline" },
-    { value: "auto", icon: "mdi:flower", label: "A" },
-    { value: "less", icon: "mdi:flower-tulip", label: "1" },
-    { value: "standard", icon: "mdi:flower-tulip", label: "2" },
-    { value: "more", icon: "mdi:flower-tulip", label: "3" },
-  ]);
+  // dose scale (off / auto / less / standard / more) as single glyphs: ○ = off, A = auto,
+  // 1/2/3 = less/standard/more. No motif — the group label above + the accent fill carry the
+  // identity, so detergent and softener share the glyph set (Neil: "no per-value labels").
+  const DOSE = [
+    { value: "off", glyph: "○" },   // ○
+    { value: "auto", glyph: "A" },
+    { value: "less", glyph: "1" },
+    { value: "standard", glyph: "2" },
+    { value: "more", glyph: "3" },
+  ];
+  const DET_RGB = "0, 150, 136";   // teal
+  const SOFT_RGB = "233, 30, 99";  // pink
+  const detSeg = (st) => awSeg(sel("detergent"), st, DET_RGB, DOSE);
+  const softSeg = (st) => awSeg(sel("softener"), st, SOFT_RGB, DOSE);
 
   if (parts.settings) {
-    // Row 1: wash temp (full width, 6 cells). Row 2: detergent | softener (two 5-cell groups
-    // side by side). Row 3: the spin dial. Shrinks the old two fat dropdown rows to three
-    // slim rows while staying icon-legible + untruncated at 390/360.
+    // Row 1: wash temp + spin dials. Row 2: two segmented controls (detergent | softener), each
+    // a joined bar with a small label above. Kept slim + untruncated at 390/360.
     cards.push(awGap(14, { type: "horizontal-stack", cards: [tempDial, spinDial] }));
-    cards.push(awGap(10, { type: "horizontal-stack", cards: [detSeg(status), softSeg(status)] }));
+    // vertical-stack = label row over bar row; the two groups sit 50/50 side by side so each
+    // label centres over its own bar. The 10px top margin (on the labels) opens the gap from
+    // the dial row. No awGap here (it would push the bar cells down off their labels).
+    cards.push({
+      type: "vertical-stack",
+      cards: [
+        { type: "horizontal-stack", cards: [
+          awSegLabel("Detergent", DET_RGB, 10),
+          awSegLabel("Softener", SOFT_RGB, 10),
+        ] },
+        { type: "horizontal-stack", cards: [detSeg(status), softSeg(status)] },
+      ],
+    });
   } else if (parts.everyday) {
     // medium: the two settings everyone actually changes, no title chrome
     cards.push(awGap(14, { type: "horizontal-stack", cards: [tempDial, spinDial] }));
