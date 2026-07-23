@@ -5,12 +5,6 @@ as a **real, pickable Lovelace card**: install via HACS, open any dashboard's *A
 dialog, search "Animated", pick an entity in the visual editor — done. No YAML pasting,
 no hand-editing entity ids into card-mod templates.
 
-![Lights, accent strips, curtains, scenes and occupancy radar cards on a live dashboard](docs/screenshot-lights-scenes.jpg)
-
-![Climate, metered plugs, laundry and media cards on a live dashboard](docs/screenshot-climate-media.jpg)
-
-*A live dashboard built entirely from these cards — every tile above is a `custom:anim-*-card`.*
-
 > [!IMPORTANT]
 > **All animation designs are the work of [@Anasbox](https://www.youtube.com/@anasbox)**
 > (GitHub: [Anashost](https://github.com/Anashost)). This project only re-packages his
@@ -26,6 +20,23 @@ no hand-editing entity ids into card-mod templates.
 >   [Buy Me a Coffee](https://www.buymeacoffee.com/anasbox) ·
 >   [Patreon](https://patreon.com/AnasBox) · [PayPal](https://paypal.me/anasboxsupport) ·
 >   [Revolut](https://revolut.me/anas4e)
+
+## The animations
+
+These are **[@Anasbox](https://www.youtube.com/@anasbox)'s own batch reels**, hosted in and
+linked back to **[Anashost/HA-Animated-cards](https://github.com/Anashost/HA-Animated-cards)** —
+they show the designs this repo packages. Click any of them for the source repo; the batch
+walkthrough videos are linked above.
+
+[![Batch 1 — the first set of animated card designs](https://github.com/user-attachments/assets/4f5a1af0-d89b-4ed9-9c8c-36e678045580)](https://github.com/Anashost/HA-Animated-cards)
+
+[![Batch 2 — animated card designs](https://github.com/user-attachments/assets/65ba4a4e-bed4-4ee1-8735-03e2bfd67db6)](https://github.com/Anashost/HA-Animated-cards)
+
+[![Batch 3 — animated card designs](https://github.com/user-attachments/assets/8acdc17a-abc0-41dc-80c3-929c5b1fa2b6)](https://github.com/Anashost/HA-Animated-cards)
+
+[![Batch 4 — animated card designs](https://github.com/user-attachments/assets/a7c3671a-11bd-4725-9765-536dbc835220)](https://github.com/Anashost/HA-Animated-cards)
+
+[![Batch 5 — animated card designs](https://github.com/user-attachments/assets/0a432feb-ed58-4dae-b88d-995f30331e04)](https://github.com/Anashost/HA-Animated-cards)
 
 ## Licence
 
