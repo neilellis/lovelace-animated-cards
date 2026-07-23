@@ -320,6 +320,35 @@ const awSpinDial = (spin, status) => ({
   } },
 });
 
+// ── the wash-temperature dial — same knob as spin (Neil: "temp can be a dial too"). Pointer
+// turns to the temperature's index; the value reads under the knob ("Cold" / "40\u00b0C").
+const AW_TEMPS = ["cold", "20", "30", "40", "60", "90"];
+const awTempDial = (temp, status) => ({
+  type: "custom:mushroom-template-card",
+  entity: temp,
+  primary: `{% set v = states('${temp}') %}{% if v == 'cold' %}Cold{% elif v in ['unavailable', 'unknown'] %}\u2014{% else %}{{ v }}\u00b0C{% endif %}`,
+  icon: "mdi:knob",
+  layout: "vertical",
+  tap_action: { action: "more-info" },
+  card_mod: { style: {
+    "ha-tile-icon$": awDialFace(".container", "width: 52px !important; height: 52px !important;"),
+    "mushroom-shape-icon$": awDialFace(".shape", "--icon-size: 52px !important; width: var(--icon-size) !important; height: var(--icon-size) !important;"),
+    ".": `
+      ha-tile-icon { --tile-icon-size: 52px; width: 52px; height: 52px; }
+      mushroom-shape-icon { --icon-size: 52px; }
+      ha-state-icon, ha-icon { display: none; }
+      ha-card {
+        ${awDisabled(status)}
+        {% set v = states('${temp}') %}
+        {% set opts = ['cold', '20', '30', '40', '60', '90'] %}
+        --aw-dial: {{ opts.index(v) if v in opts else 0 }};
+        ${AW_FLAT}
+        --card-primary-font-size: 0.9rem;
+        --card-primary-font-weight: 600;
+      }`,
+  } },
+});
+
 // ── a feature toggle that breathes gently while ON (motion = "this option is active") ────
 // Three of these share a row: a 42px icon + 12px spacing left ~50px of text at phone width
 // and every label truncated ("Anti-cr…"). 36px icon, 8px spacing, 0.85rem, and labels are
@@ -649,15 +678,8 @@ const awMake = (c, parts) => {
   // The four programme settings, tactile: segmented "radio" rows (icons to fit phone width)
   // + a rotary spin dial. Per-setting accent identity kept (temp red / spin dial / detergent
   // teal / softener pink). Live options are fixed by the Tuya integration.
-  const tempSeg = awSeg(sel("temperature"), status, "244, 67, 54", [
-    { value: "cold", icon: "mdi:snowflake" },
-    { value: "20", label: "20" },
-    { value: "30", label: "30" },
-    { value: "40", label: "40" },
-    { value: "60", label: "60" },
-    { value: "90", label: "90" },
-  ]);
   const spinDial = awSpinDial(sel("spin_speed"), status);
+  const tempDial = awTempDial(sel("temperature"), status);
   // dose scale (off / auto / less / standard / more): motif icon + a dose glyph, so the amount
   // reads at a glance where the word ("standard") never could at this width.
   const detSeg = (st) => awSeg(sel("detergent"), st, "0, 150, 136", [
@@ -679,13 +701,11 @@ const awMake = (c, parts) => {
     // Row 1: wash temp (full width, 6 cells). Row 2: detergent | softener (two 5-cell groups
     // side by side). Row 3: the spin dial. Shrinks the old two fat dropdown rows to three
     // slim rows while staying icon-legible + untruncated at 390/360.
-    cards.push(awGap(14, tempSeg));
-    cards.push(awGap(6, { type: "horizontal-stack", cards: [detSeg(status), softSeg(status)] }));
-    cards.push(awGap(8, { type: "horizontal-stack", cards: [spinDial] }));
+    cards.push(awGap(14, { type: "horizontal-stack", cards: [tempDial, spinDial] }));
+    cards.push(awGap(10, { type: "horizontal-stack", cards: [detSeg(status), softSeg(status)] }));
   } else if (parts.everyday) {
     // medium: the two settings everyone actually changes, no title chrome
-    cards.push(awGap(14, tempSeg));
-    cards.push(awGap(8, { type: "horizontal-stack", cards: [spinDial] }));
+    cards.push(awGap(14, { type: "horizontal-stack", cards: [tempDial, spinDial] }));
   }
 
   if (parts.options) {
