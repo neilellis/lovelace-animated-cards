@@ -75,6 +75,7 @@ there the draw is the only signal available.
 <!-- CARD_INDEX -->
 | Card | Type | Extra options | What it does |
 |---|---|---|---|
+| **Advanced Dishwasher** | `custom:anim-advanced-dishwasher-card` | — | A whole AEG/Electrolux dishwasher on one white fascia — glass door + spray arm, LED display, programme dial with pop-over, Start/Pause/Resume/Stop, option toggles and settings |
 | **Advanced Washing Machine (large)** | `custom:anim-advanced-washer-card` | — | The whole machine on one white fascia — porthole, LED display, programme dial, Start/Pause/Stop, every setting, toggle and usage stat |
 | **Advanced Washing Machine (medium)** | `custom:anim-advanced-washer-medium-card` | — | Porthole hero + LED display, programme dial and Start/Pause/Stop, temperature & spin, and the everyday toggles |
 | **Advanced Washing Machine (small)** | `custom:anim-advanced-washer-small-card` | — | The animated porthole hero alone — beside the big LED screen (time, state + door glyphs, progress, EEEE faults) |
@@ -142,7 +143,25 @@ there the draw is the only signal available.
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
-Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 66 designs above.
+Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 67 designs above.
+
+<details><summary><b>Advanced Dishwasher</b> — notes</summary>
+
+Built for AEG/Electrolux dishwashers on the `electrolux_status` integration, which
+exposes sibling entities on one id prefix (`sensor.<base>_connectivitystate`,
+`sensor.<base>_cyclephase`, `select.<base>_userselections_programuid`,
+`button.<base>_executecommand[_N]`, …). Pick any of the machine's sensors; everything else is
+derived from the prefix. The fascia carries a glass door window with a spinning spray arm, a
+seven-segment LED (time to end; the selected programme's duration dimmed while idle; a red
+blinking "EEEE" when offline or faulted), a programme dial + water-hardness and delay-start
+dials that each open a Bubble-Card bottom pop-over, embossed Start/Pause/Resume/Stop command
+buttons (soft-disabled when the appliance's remote control isn't Enabled), rinse-aid and
+end-of-cycle-sound segmented bars, and the option toggles (glass care, sanitize, extra power,
+extra silent, auto door opener). NB `sensor.<base>_appliancestate` ships registry-disabled by
+the integration — the card composes its state from connectivity + cycle phase, and picks the
+richer states (paused / delayed start / end of cycle) up automatically if you enable it.
+
+</details>
 
 <details><summary><b>Advanced Washing Machine (large)</b> — notes</summary>
 
