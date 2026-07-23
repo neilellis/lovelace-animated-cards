@@ -1,0 +1,35 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  hacs:
+    name: HACS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hacs/action@main
+        with:
+          category: plugin
+
+  build:
+    name: Build is in sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # build.mjs concatenates src/ into dist/animated-cards.js (with a `node --check`
+      # parse gate) and regenerates the README card index. Both are committed, so a
+      # fresh build must reproduce them exactly — otherwise someone edited src/ and
+      # forgot to rebuild. `git diff --exit-code` fails the job on any drift.
+      - name: Build the bundle
+        run: node build.mjs
+      - name: Fail if dist/ or the README index drifted
+        run: git diff --exit-code -- dist/ README.md
