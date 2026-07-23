@@ -220,32 +220,104 @@ const awDial = (prog, status) => ({
   } },
 });
 
-// ── a programme-setting dropdown whose icon comes alive only while the machine runs ──────
-// The state would show twice (secondary text AND the dropdown), so the secondary is hidden;
-// the dropdown fill is pinned — theme vars can't be trusted for contrast on the white fascia.
-const awSelect = (entity, status, name, icon, color, runAnim, keyframes) => ({
-  type: "custom:mushroom-select-card",
-  entity, name, icon, icon_color: color,
+// ── a compact segmented / "radio" cell — one selectable option on the fascia ─────────────
+// Replaces the tall mushroom-select dropdowns (Neil: "radio buttons, use icons to shrink
+// them"). A row of these is a real segmented control: the cell whose value is live is tinted
+// with the setting's accent (a filled selected-pill); the rest carry a faint outline so they
+// read as buttons on the white fascia. Icon-driven so 5–6 fit across a phone (DESIGN.md width
+// trap — verified at 390 AND 360). Tap a cell → select.select_option; the whole row greys +
+// stops taking taps when the panel is off (awDisabled). o = { value, icon?, label? }: give an
+// icon, a label, or both (both → icon-over-label, vertical). rgb = the setting's accent.
+//
+// template-card is TILE-based (DESIGN.md rule 2): the icon is ha-tile-icon/.container and the
+// primary text is SLOTTED into ha-tile-info (rule 3) — so sizing the label is done from the
+// host block on the slotted span, and the unused half is display:none'd.
+const awSegCell = (entity, status, rgb, o) => {
+  const active = `is_state('${entity}', '${o.value}')`;
+  return {
+    type: "custom:mushroom-template-card",
+    entity,
+    icon: o.icon || "mdi:blank",
+    primary: o.label || "",
+    icon_color: `{% if ${active} %}rgb(${rgb}){% else %}rgb(150, 158, 165){% endif %}`,
+    layout: "vertical",
+    tap_action: {
+      action: "call-service",
+      service: "select.select_option",
+      target: { entity_id: entity },
+      data: { option: o.value },
+    },
+    card_mod: { style: {
+      ".": `
+        ${o.icon ? "" : "ha-tile-icon, mushroom-shape-icon { display: none !important; }"}
+        ${o.label ? "" : "ha-tile-info, mushroom-state-info { display: none !important; }"}
+        ha-tile-icon { --tile-icon-size: 24px; --mdc-icon-size: 20px; width: 24px; height: 24px; margin: 0 !important; }
+        mushroom-shape-icon { --icon-size: 24px; }
+        /* the slotted primary: give the info column the FULL cell width (vertical layout
+           otherwise collapses it to a few px and clips the label), centre + shrink it, never
+           wrap or ellipsize. */
+        ha-tile-info { padding: 0 !important; width: 100% !important; box-sizing: border-box; }
+        ha-tile-info [slot="primary"] {
+          display: block !important; width: 100% !important;
+          font-size: 0.84rem !important; font-weight: 700 !important; line-height: 1 !important;
+          text-align: center !important; white-space: nowrap !important; text-overflow: clip !important;
+          overflow: visible !important;
+        }
+        ha-card {
+          ${awDisabled(status)}
+          ${AW_TEXT}
+          --ha-card-background: transparent;
+          background: transparent !important;
+          box-shadow: none !important;
+          border: 1px solid rgba(35, 40, 45, 0.18) !important;
+          border-radius: 10px;
+          padding: 5px 1px !important;
+          min-height: 0 !important;
+          --spacing: 2px;
+          {% if ${active} %}
+            background: rgba(${rgb}, 0.20) !important;
+            --ha-card-background: rgba(${rgb}, 0.20);
+            border: 1.5px solid rgba(${rgb}, 0.9) !important;
+          {% endif %}
+        }` } },
+  };
+};
+
+// a full row of segmented cells (a horizontal-stack splits its children into equal columns).
+const awSeg = (entity, status, rgb, options) => ({
+  type: "horizontal-stack",
+  cards: options.map((o) => awSegCell(entity, status, rgb, o)),
+});
+
+// ── the spin-speed rotary DIAL — the same knob as the programme dial (awDial), bound to the
+// spin select. The pointer turns to the chosen spin (index into the option list, reusing
+// awDialFace's `--aw-dial * 24deg`); the current speed reads under the knob ("1000 rpm" /
+// "No spin"). Tap opens more-info to change — matching the programme dial's behaviour. ──────
+const AW_SPINS = ["none", "600", "800", "1000", "1200", "1400"];
+const awSpinDial = (spin, status) => ({
+  type: "custom:mushroom-template-card",
+  entity: spin,
+  primary: `{% set v = states('${spin}') %}{% if v == 'none' %}No spin{% elif v in ['unavailable', 'unknown'] %}—{% else %}{{ v }} rpm{% endif %}`,
+  icon: "mdi:knob",
+  layout: "vertical",
+  tap_action: { action: "more-info" },
   card_mod: { style: {
-    "mushroom-state-info$": `.secondary { display: none !important; }`,
+    "ha-tile-icon$": awDialFace(".container", "width: 52px !important; height: 52px !important;"),
+    "mushroom-shape-icon$": awDialFace(".shape", "--icon-size: 52px !important; width: var(--icon-size) !important; height: var(--icon-size) !important;"),
     ".": `
-      ha-state-icon { display: inline-block; transform-origin: 50% 60%; animation: var(--aw-set, none); }
-      ${keyframes}
+      ha-tile-icon { --tile-icon-size: 52px; width: 52px; height: 52px; }
+      mushroom-shape-icon { --icon-size: 52px; }
+      ha-state-icon, ha-icon { display: none; }
       ha-card {
         ${awDisabled(status)}
-        {% if is_state('${status}', 'running') %}--aw-set: ${runAnim};{% endif %}
+        {% set v = states('${spin}') %}
+        {% set opts = ['none', '600', '800', '1000', '1200', '1400'] %}
+        --aw-dial: {{ opts.index(v) if v in opts else 0 }};
         ${AW_FLAT}
-        --spacing: 8px;
         --card-primary-font-size: 0.9rem;
-        /* the dropdown fill: theme vars can't be trusted for contrast on the white fascia, so
-           pin a deeper tint + a visible border so the control reads as a control, not a ghost */
-        --control-select-menu-background-color: rgba(35, 40, 45, 0.14);
-        --control-select-menu-text-color: #23282d;
-      }
-      ha-control-select-menu {
-        border: 1px solid rgba(35, 40, 45, 0.22) !important;
-        border-radius: 12px !important;
-      }` } },
+        --card-primary-font-weight: 600;
+      }`,
+  } },
 });
 
 // ── a feature toggle that breathes gently while ON (motion = "this option is active") ────
@@ -321,8 +393,16 @@ const awStat = (entity, status, name, icon, color, secondary, runAnim, keyframes
 // zone, a small one separates rows within it. (horizontal-stack takes no card_mod, so the
 // margin goes on every cell of the row.)
 const awGap = (px, row) => {
-  for (const cell of row.cards) cell.card_mod.style["."] += `
+  const apply = (r) => {
+    for (const cell of r.cards) {
+      // recurse through nested stacks (the settings row nests two segmented groups) so the
+      // top-margin lands on every leaf cell, not on a stack that carries no card_mod.
+      if (cell.type === "horizontal-stack" || cell.type === "vertical-stack") { apply(cell); continue; }
+      if (cell.card_mod && typeof cell.card_mod.style["."] === "string") cell.card_mod.style["."] += `
       ha-card { margin-top: ${px}px; }`;
+    }
+  };
+  apply(row);
   return row;
 };
 
@@ -566,26 +646,46 @@ const awMake = (c, parts) => {
     ] }));
   }
 
-  const tempSelect = awSelect(sel("temperature"), status, "Wash temp", "mdi:thermometer", "red",
-    "aw-set-glow 2.5s ease-in-out infinite",
-    `@keyframes aw-set-glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.5) drop-shadow(0 0 4px currentColor); } }`);
-  const spinSelect = awSelect(sel("spin_speed"), status, "Spin", "mdi:rotate-3d-variant", "light-blue",
-    "aw-set-spin 3s linear infinite",
-    `@keyframes aw-set-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`);
+  // The four programme settings, tactile: segmented "radio" rows (icons to fit phone width)
+  // + a rotary spin dial. Per-setting accent identity kept (temp red / spin dial / detergent
+  // teal / softener pink). Live options are fixed by the Tuya integration.
+  const tempSeg = awSeg(sel("temperature"), status, "244, 67, 54", [
+    { value: "cold", icon: "mdi:snowflake" },
+    { value: "20", label: "20" },
+    { value: "30", label: "30" },
+    { value: "40", label: "40" },
+    { value: "60", label: "60" },
+    { value: "90", label: "90" },
+  ]);
+  const spinDial = awSpinDial(sel("spin_speed"), status);
+  // dose scale (off / auto / less / standard / more): motif icon + a dose glyph, so the amount
+  // reads at a glance where the word ("standard") never could at this width.
+  const detSeg = (st) => awSeg(sel("detergent"), st, "0, 150, 136", [
+    { value: "off", icon: "mdi:water-off" },
+    { value: "auto", icon: "mdi:water-sync", label: "A" },
+    { value: "less", icon: "mdi:water", label: "1" },
+    { value: "standard", icon: "mdi:water", label: "2" },
+    { value: "more", icon: "mdi:water", label: "3" },
+  ]);
+  const softSeg = (st) => awSeg(sel("softener"), st, "233, 30, 99", [
+    { value: "off", icon: "mdi:flower-outline" },
+    { value: "auto", icon: "mdi:flower", label: "A" },
+    { value: "less", icon: "mdi:flower-tulip", label: "1" },
+    { value: "standard", icon: "mdi:flower-tulip", label: "2" },
+    { value: "more", icon: "mdi:flower-tulip", label: "3" },
+  ]);
 
   if (parts.settings) {
-    cards.push(awGap(14, { type: "horizontal-stack", cards: [tempSelect, spinSelect] }));
-    cards.push(awGap(6, { type: "horizontal-stack", cards: [
-      awSelect(sel("detergent"), status, "Detergent", "mdi:chart-bubble", "teal",
-        "aw-set-bob 2.8s ease-in-out infinite",
-        `@keyframes aw-set-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }`),
-      awSelect(sel("softener"), status, "Softener", "mdi:flower-tulip-outline", "pink",
-        "aw-set-sway 3.4s ease-in-out infinite",
-        `@keyframes aw-set-sway { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }`),
-    ] }));
+    // Row 1: wash temp (full width, 6 cells). Row 2: detergent | softener (two 5-cell groups
+    // side by side). Row 3: the spin dial. Shrinks the old two fat dropdown rows to three
+    // slim rows while staying icon-legible + untruncated at 390/360.
+    cards.push(awGap(14, tempSeg));
+    cards.push(awGap(6, { type: "horizontal-stack", cards: [detSeg(status), softSeg(status)] }));
+    cards.push(awGap(8, { type: "horizontal-stack", cards: [spinDial] }));
   } else if (parts.everyday) {
     // medium: the two settings everyone actually changes, no title chrome
-    cards.push(awGap(14, { type: "horizontal-stack", cards: [tempSelect, spinSelect] }));
+    cards.push(awGap(14, tempSeg));
+    cards.push(awGap(8, { type: "horizontal-stack", cards: [spinDial] }));
   }
 
   if (parts.options) {
