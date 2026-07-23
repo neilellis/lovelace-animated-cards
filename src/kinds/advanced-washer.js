@@ -413,7 +413,7 @@ const awMake = (c, parts) => {
       // cycle: programme No + phase step, printed small on the screen (moved here from the old
       // stats footer). Blank unless a programme is loaded, so it vanishes when the machine is off.
       { type: "template",
-        content: `{% set st = states('${status}') %}{% if st in ['running', 'paused', 'standby'] %}P{{ states('${s("selected_program")}') }}\u00b7S{{ states('${s("current_program_phase")}') }}{% endif %}`,
+        content: `{% set p = states('${s("selected_program")}') %}{% set ph = states('${s("current_program_phase")}') %}{% if p not in ['unavailable', 'unknown', 'none', '', '0'] %}P{{ p }}{% if ph not in ['unavailable', 'unknown', 'none', '', '0'] %}\u00b7S{{ ph }}{% endif %}{% endif %}`,
         tap_action: { action: "more-info", entity: s("selected_program") } },
     ],
     card_mod: { style: `
@@ -456,14 +456,15 @@ const awMake = (c, parts) => {
         --aw-frac: {{ frac | round(3) }};
         --aw-bar: {{ 'block' if st in ['running', 'paused'] else 'none' }};
         --aw-glow: {{ glow }};
+        --aw-cycle-color: {% if st in ['off', 'unavailable', 'unknown'] %}#556158{% else %}#9fb4ad{% endif %};
         filter: drop-shadow(0 0 4px rgba({{ glow }}, 0.5));
       }
       .chip-container { flex-wrap: nowrap !important; }
       /* the cycle text chip reads as small screen print, not a label */
       mushroom-template-chip .content, mushroom-chip .content {
         font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-        font-size: 11px; letter-spacing: 1px; color: #9fb4ad;
-        text-shadow: 0 0 5px rgba(120, 200, 170, 0.5);
+        font-size: 13px; letter-spacing: 1px; font-weight: 700; color: var(--aw-cycle-color, #9fb4ad);
+        text-shadow: 0 0 5px rgba(120, 200, 170, 0.4);
       }
       /* the big time / EEEE digits — centred, real seven-seg text-shadow glow */
       ha-card::before {
@@ -543,13 +544,15 @@ const awMake = (c, parts) => {
         --chip-font-size: 0.78rem;
         --chip-spacing: 8px;
         padding: 0 8px;
-      }` },
+        min-height: 0 !important;
+      }
+      .chip-container { min-height: 0 !important; }` },
   };
 
   const cards = [hero, heroExtras];
 
   if (parts.controls) {
-    cards.push(awGap(4, { type: "horizontal-stack", cards: [
+    cards.push(awGap(-14, { type: "horizontal-stack", cards: [
       awDial(s("selected_program"), status),
       awButton(actions, status, "start", "Start", "mdi:play", "76, 175, 80",
         `is_state('${status}', 'running')`),
