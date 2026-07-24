@@ -44,11 +44,6 @@ const RIG_FX = (sel) => `
         100% { box-shadow: 0 0 25px 5px rgba(var(--rig-a, 0, 255, 255), 0.8), 0 0 50px 20px rgba(var(--rig-b, 255, 0, 255), 0.6); }
       }`;
 
-// load test: the power sensor when one is configured, otherwise "on == gaming"
-const RIG_BUSY = (power) => power
-  ? `{% set busy = states('${power.entity}') | float(-1) > ${power.above ?? 0.5} %}`
-  : `{% set busy = on %}`;
-
 const rigCard = (c) => {
   const speed = c.speed || "2s";
   const glowA = c.glow || "0, 255, 255";
@@ -68,7 +63,7 @@ const rigCard = (c) => {
       ".": `${clip}
       ha-card {
         {% set on = states(config.entity) == '${active}' %}
-        ${RIG_BUSY(power)}
+        {% set busy = on %}
         --rig-a: ${glowA};
         --rig-b: ${glowB};
         {% if busy %}

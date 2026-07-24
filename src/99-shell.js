@@ -28,6 +28,24 @@ const schemaFor = (kind, generic) => {
   return rows;
 };
 
+// ── picker preview: pick a plausible demo entity ────────────────────────────────────────
+// HA calls getStubConfig both for the picker preview and for the config you get when you add
+// the card. "First entity of a fitting domain" gave nonsense — the Backup Manager sensor
+// previewing as a fridge — so candidates are scored instead: the kind's own words in the
+// object_id/friendly name win, house plumbing (updates, backups, HACS, identify buttons)
+// loses, and a live entity breaks ties so the preview actually animates rather than sitting
+// dark. A kind can override the words with `stub: ["playstation", "xbox"]`.
+const STUB_STOP = new Set(["animated", "card", "cards", "device", "plug", "any", "kind", "the", "and", "for"]);
+const STUB_JUNK = /^(update|persistent_notification|automation|script|scene|button|conversation|stt|tts|ai_task)\.|backup|hacs|supervisor|watchdog|firmware|_uptime|identify|reboot|restart|do_not_disturb|_rssi|linkquality/;
+const STUB_DULL = new Set(["off", "closed", "locked", "unavailable", "unknown", "none", "idle", "0", "standby", "not_home", "disarmed"]);
+const stubWords = (kind, def) => {
+  const words = def.stub || [...new Set(
+    `${kind} ${def.label}`.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(" ")
+      .filter((w) => w.length > 2 && !STUB_STOP.has(w)))];
+  // whole words only: a "washer" card must not adopt the *dish*washer
+  return words.length ? new RegExp(`\\b(${words.join("|")})\\b`) : null;
+};
+
 // ha-form is defined lazily by HA — force-load it via a built-in card editor
 let haFormReady;
 const ensureHaForm = () => haFormReady || (haFormReady = (async () => {
@@ -123,19 +141,30 @@ class AnimatedCardBase extends HTMLElement {
   }
 
   static getStubConfig(hass, entities, entitiesFallback) {
-    const def = KINDS[this.kind] || KINDS.lamp;
+    const kind = this.kind || "lamp";
+    const def = KINDS[kind] || KINDS.lamp;
+    const wrap = (entity) => (this.kind ? { entity } : { kind: "lamp", entity });
     if (!def.domains) return this.kind ? {} : { kind: "lamp" };
+    const states = hass?.states || {};
     const fits = (id) => {
       if (!def.domains.includes(id.split(".")[0])) return false;
       if (!def.deviceClass) return true;
-      const dc = hass?.states?.[id]?.attributes?.device_class;
-      return def.deviceClass.includes(dc);
+      return def.deviceClass.includes(states[id]?.attributes?.device_class);
     };
-    const entity = (entities || []).find(fits)
-      || (entitiesFallback || []).find(fits)
-      || Object.keys(hass?.states || {}).find(fits)
-      || "";
-    return this.kind ? { entity } : { kind: "lamp", entity };
+    const words = stubWords(kind, def);
+    const score = (id) => {
+      const st = states[id];
+      const hay = `${id.split(".").slice(1).join(".")} ${st?.attributes?.friendly_name || ""}`.toLowerCase();
+      let s = 0;
+      if (words.some((w) => hay.includes(w))) s += 10;              // it IS one of these things
+      if (STUB_JUNK.test(id) || STUB_JUNK.test(hay)) s -= 20;       // plumbing, not a device
+      if (st && !STUB_DULL.has(String(st.state).toLowerCase())) s += 3; // live → the preview animates
+      return s;
+    };
+    const pool = [...new Set([...(entities || []), ...(entitiesFallback || []), ...Object.keys(states)])].filter(fits);
+    if (!pool.length) return wrap("");
+    pool.sort((a, b) => score(b) - score(a) || a.localeCompare(b));
+    return wrap(pool[0]);
   }
 }
 

@@ -58,10 +58,6 @@ const PRN_FX = (sel, radius) => `
       }`;
 
 // printing test: the power sensor when configured, otherwise "on == printing"
-const PRN_BUSY = (power) => power
-  ? `{% set busy = states('${power.entity}') | float(-1) > ${power.above ?? 0.5} %}`
-  : `{% set busy = on %}`;
-
 const printerCard = (c) => {
   const speed = c.speed || "1.5s";
   const led = c.led_color || "#00ff00";
@@ -79,7 +75,7 @@ const printerCard = (c) => {
       ".": `${clip}
       ha-card {
         {% set on = states(config.entity) == '${active}' %}
-        ${PRN_BUSY(power)}
+        {% set busy = on %}
         --prn-led: ${led};
         --prn-shake: {{ 'prn-vibrate 0.2s linear infinite' if busy else 'none' }};
         --prn-scan: {{ 'prn-scan ${speed} ease-in-out infinite' if busy else 'none' }};

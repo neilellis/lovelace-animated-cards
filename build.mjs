@@ -37,12 +37,25 @@ const probe = join(root, "dist/.index-probe.mjs");
 writeFileSync(probe, [
   `const ANIM_CARDS_VERSION = "probe";`,
   ...files.slice(0, -1).map((f) => readFileSync(join(root, f), "utf8")),
-  `console.log(JSON.stringify(Object.entries(KINDS).map(([k, d]) => ({
-     kind: k, label: d.label, desc: d.desc,
-     options: (d.schema || []).map((r) => r.name), docs: d.docs || null }))));`,
+  // SMOKE-TEST every kind's make(): `node --check` above is parse-only, so a stale identifier
+  // (e.g. the `power` left behind when the watts-as-state override was removed) only blows up at
+  // RENDER time — the card then silently shows as a description-only tile in the picker. Calling
+  // make() here turns that into a build failure. Found the hard way 2026-07-24 (3 broken kinds).
+  `console.log(JSON.stringify(Object.entries(KINDS).map(([k, d]) => {
+     let makeError = null;
+     try { d.make({ entity: ((d.domains && d.domains[0]) || "sensor") + ".smoke_probe", name: "Probe" }); }
+     catch (e) { makeError = String((e && e.message) || e); }
+     return { kind: k, label: d.label, desc: d.desc,
+       options: (d.schema || []).map((r) => r.name), docs: d.docs || null, makeError }; })));`,
 ].join("\n"));
 const kinds = JSON.parse(execFileSync(process.execPath, [probe], { encoding: "utf8" }));
 execFileSync("rm", [probe]);
+const broken = kinds.filter((k) => k.makeError);
+if (broken.length) {
+  console.error(`\n✗ ${broken.length} kind(s) throw in make() — they would render as error/description-only cards:`);
+  for (const b of broken) console.error(`   ${b.kind}: ${b.makeError}`);
+  process.exit(1);
+}
 kinds.sort((a, b) => a.label.localeCompare(b.label));
 const index = [
   "| Card | Type | Extra options | What it does |",

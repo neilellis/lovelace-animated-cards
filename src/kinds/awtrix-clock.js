@@ -61,10 +61,6 @@ const AWX_FX = (sel) => `
       }`;
 
 // "showing something" test: the power sensor when configured, otherwise on == scrolling
-const AWX_BUSY = (power) => power
-  ? `{% set busy = states('${power.entity}') | float(-1) > ${power.above ?? 0.5} %}`
-  : `{% set busy = on %}`;
-
 const awtrixCard = (c) => {
   const speed = c.speed || "1.5s";
   const active = c.active || "on";
@@ -80,7 +76,7 @@ const awtrixCard = (c) => {
       ".": `${clip}
       ha-card {
         {% set on = states(config.entity) == '${active}' %}
-        ${AWX_BUSY(power)}
+        {% set busy = on %}
         {% if busy %}
           --awx-scroll: awx-marquee ${speed} linear infinite;
           --awx-flicker: awx-refresh 0.1s steps(2) infinite;
