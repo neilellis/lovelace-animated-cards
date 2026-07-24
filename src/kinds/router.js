@@ -46,6 +46,36 @@ const routerCard = (c) => {
   const glow = c.glow || "33, 150, 243";
   const active = c.active || "on";
   const color = c.color || "blue";
+  // With any speedtest sensor configured the card upgrades to a template-card so the second
+  // line can carry the live numbers ("Online \u00b7 \u25bc 36.6 \u25b2 38.0 Mbps \u00b7 44 ms"). Text-presentation
+  // glyphs on purpose \u2014 emoji arrows render full-colour on Apple devices.
+  const segs = [];
+  if (c.download_entity) segs.push(`\u25bc {{ states('${c.download_entity}') | float(0) | round(1) }}`);
+  if (c.upload_entity) segs.push(`\u25b2 {{ states('${c.upload_entity}') | float(0) | round(1) }} Mbps`);
+  if (c.ping_entity) segs.push(`{{ states('${c.ping_entity}') | float(0) | round(0) }} ms`);
+  if (segs.length) {
+    return {
+      type: "custom:mushroom-template-card",
+      entity: c.entity,
+      primary: c.name || friendly(c.entity),
+      secondary: `{% if states(config.entity) == '${active}' %}Online \u00b7 ${segs.join(" \u00b7 ")}{% else %}Offline{% endif %}`,
+      icon: c.icon || "mdi:router-wireless",
+      icon_color: `{{ '${color}' if states(config.entity) == '${active}' else 'disabled' }}`,
+      tap_action: { action: "more-info" },
+      card_mod: { style: {
+        "mushroom-shape-icon$": ROUTER_FX(".shape"),
+        "ha-tile-icon$": ROUTER_FX(".container", "9999px"),
+        ".": `${clip}
+      ha-card {
+        ${onTest(active)}
+        --rtr-rgb: ${glow};
+        --rtr-anim: {{ 'rtr-waves ${speed} ease-out infinite' if on else 'none' }};
+        --rtr-op: {{ '1' if on else '0.45' }};
+      }`,
+      } },
+      grid_options: { columns: 6, rows: 2 },
+    };
+  }
   return {
     ...{ type: "custom:mushroom-entity-card", entity: c.entity, name: c.name, icon_color: color },
     icon: c.icon || "mdi:router-wireless",
@@ -71,10 +101,17 @@ registerKind("router", {
   desc: "Wifi rings radiate out while the router is up; dark and still when it isn't",
   domains: ["switch", "binary_sensor", "input_boolean"],
   deviceClass: ["connectivity"],
-  schema: [F.icon, F.color, F.glow, F.speed, F.active],
+  schema: [F.icon, F.color, F.glow, F.speed, F.active,
+    { name: "download_entity", selector: { entity: { domain: "sensor" } } },
+    { name: "upload_entity", selector: { entity: { domain: "sensor" } } },
+    { name: "ping_entity", selector: { entity: { domain: "sensor" } } },
+  ],
   help: {
     glow: "Ring colour as R, G, B (default 33, 150, 243)",
     speed: "Time for one ring to travel out, e.g. 1.7s",
+    download_entity: "Speedtest download sensor (Mbps) — adds a live \u25bc\u25b2/ping line under the name",
+    upload_entity: "Speedtest upload sensor (Mbps)",
+    ping_entity: "Speedtest ping sensor (ms)",
   },
   make: routerCard,
 });

@@ -75,15 +75,12 @@ there the draw is the only signal available.
 <!-- CARD_INDEX -->
 | Card | Type | Extra options | What it does |
 |---|---|---|---|
-| **Advanced Dishwasher** | `custom:anim-advanced-dishwasher-card` | — | A whole AEG/Electrolux dishwasher on one white fascia — glass door + spray arm, LED display, programme dial with pop-over, Start/Pause/Resume/Stop, option toggles and settings |
-| **Advanced Washing Machine (large)** | `custom:anim-advanced-washer-card` | — | The whole machine on one white fascia — porthole, LED display, programme dial, Start/Pause/Stop, every setting, toggle and usage stat |
-| **Advanced Washing Machine (medium)** | `custom:anim-advanced-washer-medium-card` | — | Porthole hero + LED display, programme dial and Start/Pause/Stop, temperature & spin, and the everyday toggles |
-| **Advanced Washing Machine (small)** | `custom:anim-advanced-washer-small-card` | — | The animated porthole hero alone — beside the big LED screen (time, state + door glyphs, progress, EEEE faults) |
 | **Animated 3D Printer** | `custom:anim-printer-3d-card` | `icon` `color` `glow` `speed` `variant` `max_value` `active` | Nozzle rasters layer by layer while printing — optional progress beam and DONE badge |
 | **Animated Air Purifier** | `custom:anim-air-purifier-card` | `icon` `color` `glow` `speed` `active` | Motor hum breath with clean-air rings rippling out while it runs |
 | **Animated Air Quality** | `custom:anim-air-quality-card` | `variant` `icon` `graph` `graph_hours` | AQI tile banded good→hazardous, glow + halo escalating with severity; optional 24 h sparkline |
 | **Animated Alarm** | `custom:anim-alarm-card` | `variant` `icon` `color` `glow` `speed` `active` `arm_states` | Alarm panel shield — calm green disarmed, red radar + sonar armed, orange arming, strobing triggered |
 | **Animated Alarmo Keypad** | `custom:anim-alarmo-card` | `keep_keypad_visible` `disarmed_glow` `armed_glow` `triggered_glow` `pending_glow` | Alarmo keypad card with a state-coloured inner glow — breathing disarmed, pulsing armed, strobing triggered |
+| **Animated Awtrix Clock (device)** | `custom:anim-awtrix-clock-card` | `icon` `color` `speed` `active` | LED-matrix look — pixel grid, scrolling rainbow marquee and scanline glare (Awtrix/Ulanzi) |
 | **Animated Badge / Button** | `custom:anim-badge-card` | `icon` `content` `icon_color` `active_states` `below` `above` `animation` `always_animate` `speed` `active_bg` `active_fg` `active_border` `active_opacity` `inactive_bg` `inactive_fg` `inactive_border` `inactive_opacity` `overlay` `position` `offset_y` `offset_x` `icon_size` `text_size` `radius` `border_width` | Configurable chip pill — colours, icon and animation flip on a state match or threshold |
 | **Animated Barometer** | `custom:anim-pressure-card` | `icon` `graph` `graph_hours` | Barometric-pressure tile — storm blue through settled green to a high-pressure shimmer |
 | **Animated Battery** | `custom:anim-battery-card` | `variant` `charging_entity` `low` `medium` `target_soc` `icon` `color_low` `color_medium` `color_high` `color_charging` | Battery level — liquid disc, card-wide fill or striped bar; charging is its own colour |
@@ -115,7 +112,6 @@ there the draw is the only signal available.
 | **Animated Motion Radar** | `custom:anim-motion-card` | `icon` | Radar HUD — cyan SCANNING sweep while idle, red DETECTED sonar on motion |
 | **Animated Nintendo Switch** | `custom:anim-nintendo-switch-card` | `icon` `color` `glow` `glow_b` `speed` `active` | Red/blue Joy-Con blooms breathing either side of the icon, with a haptic rumble |
 | **Animated PC** | `custom:anim-pc-card` | `icon` `color` `led_color` `speed` `active` | Tower case with an RGB edge glow and a blinking power LED while it runs |
-| **Animated Pixel Clock** | `custom:anim-awtrix-clock-card` | `icon` `color` `speed` `active` | LED-matrix look — pixel grid, scrolling rainbow marquee and scanline glare (Awtrix/Ulanzi) |
 | **Animated PM2.5** | `custom:anim-pm25-card` | `icon` `b1` `b2` `b3` `b4` `b5` `graph` `graph_hours` | Particulate tile (µg/m³) banded good→extremely poor, with tunable per-standard cut-offs |
 | **Animated Pollen** | `custom:anim-pollen-card` | `variant` `icon` `count_entity` `high_states` `moderate_states` | Dark glass tile with a rotating two-colour aura — calm green, then amber, then red |
 | **Animated Printer** | `custom:anim-printer-card` | `icon` `color` `led_color` `speed` `active` | Shakes and sweeps a scanner beam while printing; colour but still when idle |
@@ -123,7 +119,7 @@ there the draw is the only signal available.
 | **Animated Projector** | `custom:anim-projector-card` | `icon` `color` `glow` `speed` `active` | Lamp hums, a beam fans out of the lens and the focus glow breathes while it's running |
 | **Animated RGB Light** | `custom:anim-rgb-card` | `icon` `color` `glow` `speed` `active` | Icon disc cycles the hue wheel while the RGB light/strip is on |
 | **Animated Roller Shade** | `custom:anim-roller-shade-card` | `icon` `slat` `slat_shadow` `pane_open` `pane_shut` `window_width` `height` | Draws the window — a slatted blind rolls down with position, glass fades day→night |
-| **Animated Router** | `custom:anim-router-card` | `icon` `color` `glow` `speed` `active` | Wifi rings radiate out while the router is up; dark and still when it isn't |
+| **Animated Router** | `custom:anim-router-card` | `icon` `color` `glow` `speed` `active` `download_entity` `upload_entity` `ping_entity` | Wifi rings radiate out while the router is up; dark and still when it isn't |
 | **Animated Solar Panel** | `custom:anim-solar-card` | `icon` `voltage_entity` `current_entity` `max_watts` `milliamps` `message` `theme` `color` `height` | Panel with a scanning sweep, load-scaled glow, a power bar and W / A / V badges |
 | **Animated Speaker** | `custom:anim-speaker-card` | `icon` `glow` `off_glow` `speed` | Media player whose icon thumps, shows EQ bars and a volume-scaled bass ring while playing |
 | **Animated Sprinkler** | `custom:anim-sprinkler-card` | `icon` `color` `glow` `speed` `variant` `active` | Head bobs and throws arcing droplets with a mist haze while the valve is open |
@@ -143,74 +139,7 @@ there the draw is the only signal available.
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
-Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 67 designs above.
-
-<details><summary><b>Advanced Dishwasher</b> — notes</summary>
-
-Built for AEG/Electrolux dishwashers on the `electrolux_status` integration, which
-exposes sibling entities on one id prefix (`sensor.<base>_connectivitystate`,
-`sensor.<base>_cyclephase`, `select.<base>_userselections_programuid`,
-`button.<base>_executecommand[_N]`, …). Pick any of the machine's sensors; everything else is
-derived from the prefix. The fascia carries a glass door window with a spinning spray arm, a
-seven-segment LED (time to end; the selected programme's duration dimmed while idle; a red
-blinking "EEEE" on a genuine appliance fault, a calm "----" + DISCONNECTED when merely offline),
-a programme dial + water-hardness and delay-start dials that each open a Bubble-Card bottom
-pop-over, embossed Start/Pause/Resume/Stop command buttons (soft-disabled when the appliance's
-remote control isn't Enabled), a rinse-aid fluid gauge (a tank filled to level/6 with a waving
-cyan liquid; tap for the 0–6 pop-over), and the option toggles (glass care, sanitize, extra
-power, extra silent, auto door opener, end-of-cycle sound). NB `sensor.<base>_appliancestate` ships registry-disabled by
-the integration — the card composes its state from connectivity + cycle phase, and picks the
-richer states (paused / delayed start / end of cycle) up automatically if you enable it.
-
-</details>
-
-<details><summary><b>Advanced Washing Machine (large)</b> — notes</summary>
-
-Built for Tuya washing machines / washer-dryers whose integration exposes
-sibling entities on one id prefix (`sensor.<base>_machine_status`, `select.<base>_actions`,
-`select.<base>_temperature`, `switch.<base>_prewash`, …). Pick the machine-status sensor;
-everything else is derived. The card is drawn as the machine's own white fascia: a porthole
-with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (blinking when
-paused, a red "EEEE" when the machine faults or goes offline), a rotary programme dial that
-turns to the selected programme, and embossed Start/Pause/Stop buttons with live LED dots —
-with the machine-state + door indicators tucked inside the LED bezel, a progress track along
-its bottom edge, and a slim conditional row that surfaces the occasional statuses (delayed
-start, load, low detergent / softener) only when they apply.
-
-The large size shows everything and is happy as the only card on a dashboard; medium keeps
-the dial/button fascia, temperature/spin and the everyday toggles; small is the hero alone.
-
-</details>
-
-<details><summary><b>Advanced Washing Machine (medium)</b> — notes</summary>
-
-Built for Tuya washing machines / washer-dryers whose integration exposes
-sibling entities on one id prefix (`sensor.<base>_machine_status`, `select.<base>_actions`,
-`select.<base>_temperature`, `switch.<base>_prewash`, …). Pick the machine-status sensor;
-everything else is derived. The card is drawn as the machine's own white fascia: a porthole
-with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (blinking when
-paused, a red "EEEE" when the machine faults or goes offline), a rotary programme dial that
-turns to the selected programme, and embossed Start/Pause/Stop buttons with live LED dots —
-with the machine-state + door indicators tucked inside the LED bezel, a progress track along
-its bottom edge, and a slim conditional row that surfaces the occasional statuses (delayed
-start, load, low detergent / softener) only when they apply.
-
-</details>
-
-<details><summary><b>Advanced Washing Machine (small)</b> — notes</summary>
-
-Built for Tuya washing machines / washer-dryers whose integration exposes
-sibling entities on one id prefix (`sensor.<base>_machine_status`, `select.<base>_actions`,
-`select.<base>_temperature`, `switch.<base>_prewash`, …). Pick the machine-status sensor;
-everything else is derived. The card is drawn as the machine's own white fascia: a porthole
-with a tumbling tri-spoke drum, a seven-segment LED showing time remaining (blinking when
-paused, a red "EEEE" when the machine faults or goes offline), a rotary programme dial that
-turns to the selected programme, and embossed Start/Pause/Stop buttons with live LED dots —
-with the machine-state + door indicators tucked inside the LED bezel, a progress track along
-its bottom edge, and a slim conditional row that surfaces the occasional statuses (delayed
-start, load, low detergent / softener) only when they apply.
-
-</details>
+Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 63 designs above.
 
 <details><summary><b>Animated 3D Printer</b> — notes</summary>
 

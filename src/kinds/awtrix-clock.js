@@ -104,7 +104,7 @@ const awtrixCard = (c) => {
 };
 
 registerKind("awtrix-clock", {
-  label: "Animated Pixel Clock",
+  label: "Animated Awtrix Clock (device)",
   desc: "LED-matrix look — pixel grid, scrolling rainbow marquee and scanline glare (Awtrix/Ulanzi)",
   domains: ["switch", "light", "input_boolean"],
   schema: [F.icon, F.color, F.speed, F.active],
