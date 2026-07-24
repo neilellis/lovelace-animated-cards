@@ -112,6 +112,7 @@ there the draw is the only signal available.
 | **Animated Motion Radar** | `custom:anim-motion-card` | `icon` | Radar HUD — cyan SCANNING sweep while idle, red DETECTED sonar on motion |
 | **Animated Nintendo Switch** | `custom:anim-nintendo-switch-card` | `icon` `color` `glow` `glow_b` `speed` `active` | Red/blue Joy-Con blooms breathing either side of the icon, with a haptic rumble |
 | **Animated PC** | `custom:anim-pc-card` | `icon` `color` `led_color` `speed` `active` | Tower case with an RGB edge glow and a blinking power LED while it runs |
+| **Animated Pixel Clock** | `custom:anim-pixel-clock-card` | `glow` `twelve_hour` `hide_date` `speed` | LED-matrix clock — glowing dot-matrix time over a pixel grid with scanlines and a slow rainbow marquee (no entity needed) |
 | **Animated PM2.5** | `custom:anim-pm25-card` | `icon` `b1` `b2` `b3` `b4` `b5` `graph` `graph_hours` | Particulate tile (µg/m³) banded good→extremely poor, with tunable per-standard cut-offs |
 | **Animated Pollen** | `custom:anim-pollen-card` | `variant` `icon` `count_entity` `high_states` `moderate_states` | Dark glass tile with a rotating two-colour aura — calm green, then amber, then red |
 | **Animated Printer** | `custom:anim-printer-card` | `icon` `color` `led_color` `speed` `active` | Shakes and sweeps a scanner beam while printing; colour but still when idle |
@@ -139,7 +140,7 @@ there the draw is the only signal available.
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
-Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 63 designs above.
+Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 64 designs above.
 
 <details><summary><b>Animated 3D Printer</b> — notes</summary>
 
@@ -279,6 +280,13 @@ Tap opens more-info rather than toggling — an accidental tap should never unlo
 <details><summary><b>Animated Mailbox</b> — notes</summary>
 
 Built for a helper you set from an automation (`input_boolean.mail_arrived`) or a mailbox contact sensor. The optional clear chip calls `input_boolean.turn_off`, so it is only offered when the entity is an `input_boolean`.
+
+</details>
+
+<details><summary><b>Animated Pixel Clock</b> — notes</summary>
+
+No entity required — the card renders the current time (updates every minute) as a
+glowing LED-matrix panel. An optional entity makes tap open its more-info dialog.
 
 </details>
 
