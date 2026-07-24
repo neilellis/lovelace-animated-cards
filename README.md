@@ -103,6 +103,7 @@ there the draw is the only signal available.
 | **Animated Humidity** | `custom:anim-humidity-card` | — | Bobbing droplet, colour-banded — amber parched, slate healthy, blue saturated |
 | **Animated Humidity (graph)** | `custom:anim-humidity-graph-card` | `graph` `graph_hours` | Three-band droplet with glow + halo layers and a 24 h sparkline bled into the corner |
 | **Animated Illuminance** | `custom:anim-lux-card` | `icon` `graph` `graph_hours` | Light-level tile ramping night-blue → dusk purple → warm → a near-white sun shimmer |
+| **Animated Internet Speed** | `custom:anim-speedtest-card` | `upload_entity` `ping_entity` `max_download` | SpeedTest panel — a live gauge with data-rain falling at your measured download rate (and rising for upload), heartbeat paced by ping |
 | **Animated Kettle** | `custom:anim-kettle-card` | `icon` `color` `glow` `speed` `active` | Heat glow swells and steam drifts off the spout while it boils |
 | **Animated Lamp** | `custom:anim-lamp-card` | `active` `controls_always_open` | Mushroom light card (brightness/colour controls) pulsing in the light's own colour |
 | **Animated LED Strip** | `custom:anim-led-strip-card` | `icon` `color` `active` | Vertical tile glowing in the strip's own colour while on |
@@ -140,7 +141,7 @@ there the draw is the only signal available.
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `tap_navigate` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
-Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 64 designs above.
+Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 65 designs above.
 
 <details><summary><b>Animated 3D Printer</b> — notes</summary>
 
@@ -262,6 +263,15 @@ The sparkline needs two more HACS frontend cards: **mini-graph-card** and **vert
 <details><summary><b>Animated Illuminance</b> — notes</summary>
 
 The sparkline needs two more HACS frontend cards: **mini-graph-card** and **vertical-stack-in-card**. Turn the graph off and the kind renders as a plain Mushroom + card-mod card.
+
+</details>
+
+<details><summary><b>Animated Internet Speed</b> — notes</summary>
+
+Bind `sensor.speedtest_download`; `_upload` and `_ping` are derived from its id.
+The gauge fills to download ÷ max_download and colour-bands red/amber/green; the data-rain's
+fall rate tracks download, the rising stream tracks upload, and the gauge's heartbeat is paced
+by ping. The second line reads "▼ 50.4 ▲ 36.3 Mbps · 45 ms · tested 12 min ago".
 
 </details>
 
