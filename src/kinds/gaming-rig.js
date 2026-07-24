@@ -4,10 +4,10 @@
 // glass and a cyan/magenta neon breathes around the case while the rig is under load; powered
 // but idle it just sits there with a faint static glow; off it's dark.
 //
-// Upstream's number-mode block is the load test — here that's the optional power sensor
-// (the `active` state): matching = gaming, otherwise idle. With no distinct state
-// configured, on == gaming. The case keeps a 10px radius in both icon structures (a round tile
-// would undo the whole "it's a box" idea).
+// Upstream's number-mode block is the load test. Here the `active` state decides powered vs
+// off, and an optional `power_entity` splits powered into gaming (fan + neon) and idle (the
+// static idle_glow); with no sensor, on == gaming. The case keeps a 10px radius in both icon
+// structures (a round tile would undo the whole "it's a box" idea).
 
 const RIG_FX = (sel) => `
       ${sel} {
@@ -44,6 +44,12 @@ const RIG_FX = (sel) => `
         100% { box-shadow: 0 0 25px 5px rgba(var(--rig-a, 0, 255, 255), 0.8), 0 0 50px 20px rgba(var(--rig-b, 255, 0, 255), 0.6); }
       }`;
 
+// busy test: the rig's own state decides on/off; an optional power sensor separates
+// "under load" from "merely powered" — watts as a SECOND signal, never as the state (v0.3.0).
+const RIG_BUSY = (sensor, above) => sensor
+  ? `{% set busy = on and states('${sensor}') | float(-1) > ${above ?? 150} %}`
+  : `{% set busy = on %}`;
+
 const rigCard = (c) => {
   const speed = c.speed || "2s";
   const glowA = c.glow || "0, 255, 255";
@@ -63,7 +69,7 @@ const rigCard = (c) => {
       ".": `${clip}
       ha-card {
         {% set on = states(config.entity) == '${active}' %}
-        {% set busy = on %}
+        ${RIG_BUSY(c.power_entity, c.power_above)}
         --rig-a: ${glowA};
         --rig-b: ${glowB};
         {% if busy %}
@@ -100,13 +106,17 @@ registerKind("gaming-rig", {
     { name: "glow_b", selector: { text: {} } },
     { name: "idle_glow", selector: { text: {} } },
     F.speed, F.active,
+    { name: "power_entity", selector: { entity: { domain: "sensor", device_class: "power" } } },
+    { name: "power_above", selector: { number: { min: 0, step: 0.1, mode: "box", unit_of_measurement: "W" } } },
   ],
   help: {
+    power_entity: "Optional watts sensor for the busy level — the card's entity still decides on/off; above the threshold reads as gaming, below it as powered but idle (the static idle_glow)",
+    power_above: "Watts above which it counts as gaming (default 150 W)",
     glow: "First neon colour as R, G, B (default 0, 255, 255)",
     glow_b: "Second neon colour as R, G, B (default 255, 0, 255)",
     idle_glow: "Static glow while on but idle, as R, G, B (default 255, 255, 255)",
     speed: "Fan revolution / neon breath period, e.g. 2s",
   },
-  docs: "Two states: `active` (default `on`) reads as gaming — fan + neon — and anything else as idle. Upstream drove a third powered-but-idle level from a number-mode block; that needed a watts-as-state override, which this pack deliberately doesn't have.",
+  docs: "`active` (default `on`) decides powered vs off. Add a `power_entity` to get upstream's third level back: above `power_above` (default 150 W) the rig is gaming — spinning fan, breathing neon — and below it it's powered but idle, wearing the static `idle_glow`. Without a sensor, on == gaming. The watts are only ever the *busy* signal here; the card's own entity still decides on/off (that's the difference from the watts-as-state override dropped in v0.3.0).",
   make: rigCard,
 });

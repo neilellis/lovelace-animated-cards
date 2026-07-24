@@ -57,7 +57,12 @@ const PRN_FX = (sel, radius) => `
         100% { opacity: 1; transform: scale(1.2); }
       }`;
 
-// printing test: the power sensor when configured, otherwise "on == printing"
+// printing test: the printer's own state decides on/off; an optional power sensor separates
+// "actually printing" from "merely powered" — watts as a SECOND signal, never as the state (v0.3.0).
+const PRN_BUSY = (sensor, above) => sensor
+  ? `{% set busy = on and states('${sensor}') | float(-1) > ${above ?? 15} %}`
+  : `{% set busy = on %}`;
+
 const printerCard = (c) => {
   const speed = c.speed || "1.5s";
   const led = c.led_color || "#00ff00";
@@ -75,7 +80,7 @@ const printerCard = (c) => {
       ".": `${clip}
       ha-card {
         {% set on = states(config.entity) == '${active}' %}
-        {% set busy = on %}
+        ${PRN_BUSY(c.power_entity, c.power_above)}
         --prn-led: ${led};
         --prn-shake: {{ 'prn-vibrate 0.2s linear infinite' if busy else 'none' }};
         --prn-scan: {{ 'prn-scan ${speed} ease-in-out infinite' if busy else 'none' }};
@@ -92,12 +97,17 @@ registerKind("printer", {
   label: "Animated Printer",
   desc: "Shakes and sweeps a scanner beam while printing; colour but still when idle",
   domains: ["switch", "input_boolean", "binary_sensor", "sensor"],
-  schema: [F.icon, F.color, { name: "led_color", selector: { text: {} } }, F.speed, F.active],
+  schema: [F.icon, F.color, { name: "led_color", selector: { text: {} } }, F.speed, F.active,
+    { name: "power_entity", selector: { entity: { domain: "sensor", device_class: "power" } } },
+    { name: "power_above", selector: { number: { min: 0, step: 0.1, mode: "box", unit_of_measurement: "W" } } },
+  ],
   help: {
+    power_entity: "Optional watts sensor for the busy level — the card's entity still decides on/off; above the threshold reads as printing, below it as powered but idle (colour, but still)",
+    power_above: "Watts above which it counts as printing (default 15 W)",
     led_color: "Status LED colour (CSS colour, default #00ff00)",
     speed: "Scanner-beam sweep duration, e.g. 1.5s",
     active: "State that counts as powered on (default: on)",
   },
-  docs: "Two-level card: `active` decides powered vs dead (colour vs monochrome), while shake/beam/LED only run when it's actually printing. That second level needs a status entity that distinguishes printing from idle; against a bare on/off switch a printer that is merely on will animate continuously.",
+  docs: "Two-level card: `active` decides powered vs dead (colour vs monochrome), while shake/beam/LED only run when it's actually printing. Supply a `power_entity` for that second level — above `power_above` (default 15 W) it's printing, below it it's merely warm. Without one, a printer that is simply on animates continuously. The watts are the *busy* signal only; on/off still comes from the card's own entity.",
   make: printerCard,
 });

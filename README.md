@@ -80,7 +80,7 @@ there the draw is the only signal available.
 | **Animated Air Quality** | `custom:anim-air-quality-card` | `variant` `icon` `graph` `graph_hours` | AQI tile banded good→hazardous, glow + halo escalating with severity; optional 24 h sparkline |
 | **Animated Alarm** | `custom:anim-alarm-card` | `variant` `icon` `color` `glow` `speed` `active` `arm_states` | Alarm panel shield — calm green disarmed, red radar + sonar armed, orange arming, strobing triggered |
 | **Animated Alarmo Keypad** | `custom:anim-alarmo-card` | `keep_keypad_visible` `disarmed_glow` `armed_glow` `triggered_glow` `pending_glow` | Alarmo keypad card with a state-coloured inner glow — breathing disarmed, pulsing armed, strobing triggered |
-| **Animated Awtrix Clock (device)** | `custom:anim-awtrix-clock-card` | `icon` `color` `speed` `active` | LED-matrix look — pixel grid, scrolling rainbow marquee and scanline glare (Awtrix/Ulanzi) |
+| **Animated Awtrix Clock (device)** | `custom:anim-awtrix-clock-card` | `icon` `color` `speed` `active` `power_entity` `power_above` | LED-matrix look — pixel grid, scrolling rainbow marquee and scanline glare (Awtrix/Ulanzi) |
 | **Animated Badge / Button** | `custom:anim-badge-card` | `icon` `content` `icon_color` `active_states` `below` `above` `animation` `always_animate` `speed` `active_bg` `active_fg` `active_border` `active_opacity` `inactive_bg` `inactive_fg` `inactive_border` `inactive_opacity` `overlay` `position` `offset_y` `offset_x` `icon_size` `text_size` `radius` `border_width` | Configurable chip pill — colours, icon and animation flip on a state match or threshold |
 | **Animated Barometer** | `custom:anim-pressure-card` | `icon` `graph` `graph_hours` | Barometric-pressure tile — storm blue through settled green to a high-pressure shimmer |
 | **Animated Battery** | `custom:anim-battery-card` | `variant` `charging_entity` `low` `medium` `target_soc` `icon` `color_low` `color_medium` `color_high` `color_charging` | Battery level — liquid disc, card-wide fill or striped bar; charging is its own colour |
@@ -96,7 +96,7 @@ there the draw is the only signal available.
 | **Animated Fridge / Freezer** | `custom:anim-fridge-card` | `variant` `icon` `active` `power_entity` `power_above` `door_entity` `door2_entity` `fridge_temp_entity` `freezer_temp_entity` `max_fridge_temp` `max_freezer_temp` `super_above` `defrost_above` `cooling_states` `super_states` `defrost_states` | Snow falls and the compressor rumbles while it cools; loud red alert when a door is left open |
 | **Animated Fuel Tank** | `custom:anim-fuel-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with amber fuel, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Games Console** | `custom:anim-console-card` | `icon` `color` `glow` `speed` `active` | Pad rumbles inside a cycling RGB LED bloom while the console is on |
-| **Animated Gaming Rig** | `custom:anim-gaming-rig-card` | `icon` `color` `glow` `glow_b` `idle_glow` `speed` `active` | PC case with a spinning RGB fan and neon breathe under load; faint glow when idle |
+| **Animated Gaming Rig** | `custom:anim-gaming-rig-card` | `icon` `color` `glow` `glow_b` `idle_glow` `speed` `active` `power_entity` `power_above` | PC case with a spinning RGB fan and neon breathe under load; faint glow when idle |
 | **Animated Garage Door** | `custom:anim-garage-door-card` | `variant` `icon` `glow` `speed` `active` `closed_glow` `open_glow` `moving_glow` | Cover card — ring pulse while open, or a green/red/orange closed-open-moving state machine |
 | **Animated Heater** | `custom:anim-heater-card` | `flame_color` | Climate card with flame glow + ember pulse while the zone is heating |
 | **Animated Home Server** | `custom:anim-server-card` | `icon` `color` `glow` `speed` `active` | Rack box with flickering disk LEDs and a throbbing network glow while it's up |
@@ -116,7 +116,7 @@ there the draw is the only signal available.
 | **Animated Pixel Clock** | `custom:anim-pixel-clock-card` | `glow` `twelve_hour` `hide_date` `speed` | LED-matrix clock — glowing dot-matrix time over a pixel grid with scanlines and a slow rainbow marquee (no entity needed) |
 | **Animated PM2.5** | `custom:anim-pm25-card` | `icon` `b1` `b2` `b3` `b4` `b5` `graph` `graph_hours` | Particulate tile (µg/m³) banded good→extremely poor, with tunable per-standard cut-offs |
 | **Animated Pollen** | `custom:anim-pollen-card` | `variant` `icon` `count_entity` `high_states` `moderate_states` | Dark glass tile with a rotating two-colour aura — calm green, then amber, then red |
-| **Animated Printer** | `custom:anim-printer-card` | `icon` `color` `led_color` `speed` `active` | Shakes and sweeps a scanner beam while printing; colour but still when idle |
+| **Animated Printer** | `custom:anim-printer-card` | `icon` `color` `led_color` `speed` `active` `power_entity` `power_above` | Shakes and sweeps a scanner beam while printing; colour but still when idle |
 | **Animated Printer Ink** | `custom:anim-printer-ink-card` | `variant` `icon` `ink_c` `ink_m` `ink_y` `ink_k` `low_threshold` `printing_states` `scan` `ink_theme` | Ink levels drawn as CMYK bars (or a single black tank) with a scanning beam while printing |
 | **Animated Projector** | `custom:anim-projector-card` | `icon` `color` `glow` `speed` `active` | Lamp hums, a beam fans out of the lens and the focus glow breathes while it's running |
 | **Animated RGB Light** | `custom:anim-rgb-card` | `icon` `color` `glow` `speed` `active` | Icon disc cycles the hue wheel while the RGB light/strip is on |
@@ -158,6 +158,12 @@ The sparkline needs two more HACS frontend cards: **mini-graph-card** and **vert
 <details><summary><b>Animated Alarmo Keypad</b> — notes</summary>
 
 Needs the **Alarmo** integration plus its `custom:alarmo-card` frontend card, and **card-mod ≥ 3.4.6** — earlier card-mod cannot style non-Mushroom custom cards, and the card silently renders unstyled. `card_mod.style` here is a plain string (not the per-element map the Mushroom kinds use) for the same reason. If you only have a stock `alarm_control_panel`, use the `alarm` kind instead.
+
+</details>
+
+<details><summary><b>Animated Awtrix Clock (device)</b> — notes</summary>
+
+`active` (default `on`) decides powered vs off. With a `power_entity` the card gets its middle level back: above `power_above` (default 1.5 W) the matrix is scrolling — marquee plus refresh flicker — and below it it just breathes. Without a sensor, on == scrolling. The watts are the *busy* signal only; on/off still comes from the card's own entity.
 
 </details>
 
@@ -244,7 +250,7 @@ Loud by design (fast rumble + bright bloom); keep one per view. A console left i
 
 <details><summary><b>Animated Gaming Rig</b> — notes</summary>
 
-Two states: `active` (default `on`) reads as gaming — fan + neon — and anything else as idle. Upstream drove a third powered-but-idle level from a number-mode block; that needed a watts-as-state override, which this pack deliberately doesn't have.
+`active` (default `on`) decides powered vs off. Add a `power_entity` to get upstream's third level back: above `power_above` (default 150 W) the rig is gaming — spinning fan, breathing neon — and below it it's powered but idle, wearing the static `idle_glow`. Without a sensor, on == gaming. The watts are only ever the *busy* signal here; the card's own entity still decides on/off (that's the difference from the watts-as-state override dropped in v0.3.0).
 
 </details>
 
@@ -314,7 +320,7 @@ Bind the **level** sensor (a text state like `low`/`moderate`/`high`) as the ent
 
 <details><summary><b>Animated Printer</b> — notes</summary>
 
-Two-level card: `active` decides powered vs dead (colour vs monochrome), while shake/beam/LED only run when it's actually printing. That second level needs a status entity that distinguishes printing from idle; against a bare on/off switch a printer that is merely on will animate continuously.
+Two-level card: `active` decides powered vs dead (colour vs monochrome), while shake/beam/LED only run when it's actually printing. Supply a `power_entity` for that second level — above `power_above` (default 15 W) it's printing, below it it's merely warm. Without one, a printer that is simply on animates continuously. The watts are the *busy* signal only; on/off still comes from the card's own entity.
 
 </details>
 

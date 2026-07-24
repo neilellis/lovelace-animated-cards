@@ -60,7 +60,12 @@ const AWX_FX = (sel) => `
         100% { filter: brightness(1); }
       }`;
 
-// "showing something" test: the power sensor when configured, otherwise on == scrolling
+// "showing something" test: the clock's own state decides on/off; an optional power sensor
+// separates scrolling from idle — watts as a SECOND signal, never as the state (v0.3.0).
+const AWX_BUSY = (sensor, above) => sensor
+  ? `{% set busy = on and states('${sensor}') | float(-1) > ${above ?? 1.5} %}`
+  : `{% set busy = on %}`;
+
 const awtrixCard = (c) => {
   const speed = c.speed || "1.5s";
   const active = c.active || "on";
@@ -76,7 +81,7 @@ const awtrixCard = (c) => {
       ".": `${clip}
       ha-card {
         {% set on = states(config.entity) == '${active}' %}
-        {% set busy = on %}
+        ${AWX_BUSY(c.power_entity, c.power_above)}
         {% if busy %}
           --awx-scroll: awx-marquee ${speed} linear infinite;
           --awx-flicker: awx-refresh 0.1s steps(2) infinite;
@@ -103,10 +108,16 @@ registerKind("awtrix-clock", {
   label: "Animated Awtrix Clock (device)",
   desc: "LED-matrix look — pixel grid, scrolling rainbow marquee and scanline glare (Awtrix/Ulanzi)",
   domains: ["switch", "light", "input_boolean"],
-  schema: [F.icon, F.color, F.speed, F.active],
+  schema: [F.icon, F.color, F.speed, F.active,
+    { name: "power_entity", selector: { entity: { domain: "sensor", device_class: "power" } } },
+    { name: "power_above", selector: { number: { min: 0, step: 0.1, mode: "box", unit_of_measurement: "W" } } },
+  ],
   help: {
+    power_entity: "Optional watts sensor for the busy level — the card's entity still decides on/off; above the threshold reads as scrolling something, below it as powered but idle (the slow breathe)",
+    power_above: "Watts above which it counts as scrolling something (default 1.5 W)",
     speed: "Marquee crossing time, e.g. 1.5s",
     active: "State that counts as powered on (default: on)",
   },
+  docs: "`active` (default `on`) decides powered vs off. With a `power_entity` the card gets its middle level back: above `power_above` (default 1.5 W) the matrix is scrolling — marquee plus refresh flicker — and below it it just breathes. Without a sensor, on == scrolling. The watts are the *busy* signal only; on/off still comes from the card's own entity.",
   make: awtrixCard,
 });
