@@ -46,6 +46,27 @@ const stubWords = (kind, def) => {
   return words.length ? new RegExp(`\\b(${words.join("|")})\\b`) : null;
 };
 
+// A card with no entity yet — the picker preview in a house that owns nothing fitting (no
+// garage door, no CO₂ sensor), or one cleared in the editor. A muted tile in the kind's own
+// icon reads better there than HA's bare description text or a red error card.
+const placeholderFor = (def) => {
+  let icon = "mdi:card-outline";
+  let grid;
+  try {
+    const c = def.make({ entity: "" });
+    grid = c.grid_options;
+    if (typeof c.icon === "string" && /^mdi:[\w-]+$/.test(c.icon)) icon = c.icon;
+  } catch (e) { /* kind can't render entity-less — the generic icon still works */ }
+  return {
+    type: "custom:mushroom-template-card",
+    primary: def.label.replace(/^Animated /, ""),
+    secondary: "Pick an entity",
+    icon, icon_color: "disabled",
+    tap_action: { action: "none" },
+    grid_options: grid || { columns: 6, rows: 2 },
+  };
+};
+
 // ha-form is defined lazily by HA — force-load it via a built-in card editor
 let haFormReady;
 const ensureHaForm = () => haFormReady || (haFormReady = (async () => {
@@ -98,9 +119,8 @@ class AnimatedCardBase extends HTMLElement {
     const kind = this.constructor.kind || config.kind;
     const def = KINDS[kind];
     if (!def) throw new Error(`animated-card: unknown kind "${kind ?? ""}" — use one of: ${Object.keys(KINDS).sort().join(", ")}`);
-    if (!config.entity && !def.entityOptional) throw new Error(`${def.label}: entity is required`);
     this._config = config;
-    this._inner = def.make(config);
+    this._inner = (!config.entity && !def.entityOptional) ? placeholderFor(def) : def.make(config);
     this._build();
   }
 
@@ -152,18 +172,22 @@ class AnimatedCardBase extends HTMLElement {
       return def.deviceClass.includes(states[id]?.attributes?.device_class);
     };
     const words = stubWords(kind, def);
+    const nameOf = (id) => states[id]?.attributes?.friendly_name || id;
     const score = (id) => {
       const st = states[id];
+      const state = String(st?.state ?? "").toLowerCase();
       const hay = `${id.split(".").slice(1).join(".")} ${st?.attributes?.friendly_name || ""}`.toLowerCase();
-      let s = 0;
-      if (words.some((w) => hay.includes(w))) s += 10;              // it IS one of these things
-      if (STUB_JUNK.test(id) || STUB_JUNK.test(hay)) s -= 20;       // plumbing, not a device
-      if (st && !STUB_DULL.has(String(st.state).toLowerCase())) s += 3; // live → the preview animates
+      let s = def.domains.length - def.domains.indexOf(id.split(".")[0]); // the kind's own domain first
+      if (words?.test(hay)) s += 12;                                 // it IS one of these things
+      if (STUB_JUNK.test(id) || STUB_JUNK.test(hay)) s -= 25;        // plumbing, not a device
+      if (["unavailable", "unknown", "none", ""].includes(state)) s -= 6; // don't preview a dead device
+      else if (!STUB_DULL.has(state)) s += 3;                        // live → the preview animates
       return s;
     };
     const pool = [...new Set([...(entities || []), ...(entitiesFallback || []), ...Object.keys(states)])].filter(fits);
     if (!pool.length) return wrap("");
-    pool.sort((a, b) => score(b) - score(a) || a.localeCompare(b));
+    // ties break on the tidier name — a 40-character sub-sensor makes an ugly preview
+    pool.sort((a, b) => score(b) - score(a) || nameOf(a).length - nameOf(b).length || a.localeCompare(b));
     return wrap(pool[0]);
   }
 }

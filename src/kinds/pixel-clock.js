@@ -10,8 +10,17 @@
 // the sanctioned exception (like the motion radar): its whole premise is a living display, and
 // the marquee is slow (8s) so it reads ambient, not busy.
 
+// The digit sizes live in BOTH text-shadow scopes (tile + legacy Mushroom): the card's
+// .primary/.secondary set their own font-size inside the shadow root, so host-level
+// --card-primary-font-size never lands — same adoptedStyleSheets battle as the icon sizes.
+const PXC_TEXT = `
+      .primary { font-size: 32px !important; font-weight: 800 !important; line-height: 1.15 !important; }
+      .secondary { font-size: 13px !important; }`;
+
 const PXC_FX = `
       ha-card {
+        min-height: 96px;
+        justify-content: center;
         position: relative;
         overflow: hidden;
         clip-path: inset(0 0 0 0 round var(--ha-card-border-radius, 12px));
@@ -97,7 +106,10 @@ glowing LED-matrix panel. An optional entity makes tap open its more-info dialog
     secondary: c.hide_date ? "" : "{{ now().strftime('%A %-d %B') }}",
     layout: "vertical",
     tap_action: c.entity ? { action: "more-info" } : { action: "none" },
-    card_mod: { style: { ".": `${PXC_FX}
+    card_mod: { style: {
+      "ha-tile-info$": PXC_TEXT,
+      "mushroom-state-info$": PXC_TEXT,
+      ".": `${PXC_FX}
       ha-card {
         --pxc-rgb: ${c.glow || "57, 255, 110"};
         ${c.speed ? `--pxc-speed: ${c.speed};` : ""}
