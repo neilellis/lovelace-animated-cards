@@ -98,6 +98,7 @@ const drList = (s, fallback) => (s || fallback).toLowerCase().split(",").map((x)
 
 registerKind("dryer", {
   label: "Animated Tumble Dryer",
+  stub: ["dryer", "tumble"],
   desc: "Drum fills and turns — orange steam on heat, blue breeze on cool-down, sparkle when done",
   domains: ["sensor", "binary_sensor", "switch"],
   schema: [

@@ -107,6 +107,7 @@ const cbList = (s, fallback) => (s || fallback).toLowerCase().split(",").map((x)
 
 registerKind("washer-dryer-combo", {
   label: "Animated Washer-Dryer Combo",
+  stub: ["washer", "washing", "dryer"],
   desc: "One drum, five phases — wash bubbles, spin rotation, dry steam, cool breeze, done sparkle",
   domains: ["sensor", "binary_sensor", "switch"],
   schema: [

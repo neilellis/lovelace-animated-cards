@@ -76,6 +76,7 @@ const pcCard = (c) => {
 
 registerKind("pc", {
   label: "Animated PC",
+  stub: ["desktop", "workstation", "imac", "macbook", "laptop", "rig"],
   desc: "Tower case with an RGB edge glow and a blinking power LED while it runs",
   domains: ["switch", "input_boolean", "binary_sensor", "device_tracker"],
   schema: [F.icon, F.color, { name: "led_color", selector: { text: {} } }, F.speed, F.active],

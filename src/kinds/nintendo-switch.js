@@ -83,6 +83,7 @@ const nsCard = (c) => {
 
 registerKind("nintendo-switch", {
   label: "Animated Nintendo Switch",
+  stub: ["nintendo", "joycon", "wii", "console"],
   desc: "Red/blue Joy-Con blooms breathing either side of the icon, with a haptic rumble",
   domains: ["switch", "input_boolean", "media_player", "binary_sensor"],
   schema: [

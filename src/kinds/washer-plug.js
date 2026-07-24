@@ -90,6 +90,7 @@ const WSP_CHROME = `
 
 registerKind("washer-plug", {
   label: "Animated Washing Machine (smart plug)",
+  stub: ["washer", "washing"],
   desc: "Dumb washer read off its plug — wash bubbles, spin rotation and a heater band, from watts alone",
   domains: ["sensor", "binary_sensor", "switch"],
   entitySelector: { entity: { domain: ["sensor", "binary_sensor", "switch"] } },

@@ -4,6 +4,7 @@
 
 registerKind("water-tank", {
   label: "Animated Water Tank",
+  stub: ["water", "tank", "cistern", "butt"],
   desc: "Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark",
   domains: ["sensor"],
   schema: tankRows(),

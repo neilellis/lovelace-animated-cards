@@ -91,6 +91,7 @@ const consoleCard = (c) => {
 
 registerKind("console", {
   label: "Animated Games Console",
+  stub: ["console", "playstation", "xbox", "ps5", "ps4", "wii"],
   desc: "Pad rumbles inside a cycling RGB LED bloom while the console is on",
   domains: ["switch", "input_boolean", "media_player", "binary_sensor"],
   schema: [F.icon, F.color, F.glow, F.speed, F.active],

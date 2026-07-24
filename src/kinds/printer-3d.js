@@ -34,6 +34,7 @@ const printerIcon = (bedShadow) => `
 
 registerKind("printer-3d", {
   label: "Animated 3D Printer",
+  stub: ["printer", "3d", "bambu", "prusa", "octoprint"],
   desc: "Nozzle rasters layer by layer while printing — optional progress beam and DONE badge",
   domains: ["sensor", "switch", "input_boolean"],
   schema: [

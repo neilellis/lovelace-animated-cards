@@ -138,7 +138,7 @@ there the draw is the only signal available.
 | **Animated Water Leak** | `custom:anim-water-leak-card` | `variant` `icon` `water` `level` `wet_text` `dry_text` | Leak sensor that floods — the card (or the icon) fills with wobbling water when wet |
 | **Animated Water Pump** | `custom:anim-water-pump-card` | `icon` `color` `glow` `speed` `active` | Impeller spins, housing buzzes and pressure rings flow out while the pump runs |
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
-| **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
+| **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `tap_navigate` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
 Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 64 designs above.
 

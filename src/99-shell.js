@@ -36,7 +36,7 @@ const schemaFor = (kind, generic) => {
 // loses, and a live entity breaks ties so the preview actually animates rather than sitting
 // dark. A kind can override the words with `stub: ["playstation", "xbox"]`.
 const STUB_STOP = new Set(["animated", "card", "cards", "device", "plug", "any", "kind", "the", "and", "for"]);
-const STUB_JUNK = /^(update|persistent_notification|automation|script|scene|button|conversation|stt|tts|ai_task)\.|backup|hacs|supervisor|watchdog|firmware|_uptime|identify|reboot|restart|do_not_disturb|_rssi|linkquality/;
+const STUB_JUNK = /^(update|persistent_notification|automation|script|scene|button|conversation|stt|tts|ai_task)\.|backup|hacs|supervisor|watchdog|firmware|uptime|identify|reboot|restart|do_not_disturb|_rssi|linkquality/;
 const STUB_DULL = new Set(["off", "closed", "locked", "unavailable", "unknown", "none", "idle", "0", "standby", "not_home", "disarmed"]);
 const stubWords = (kind, def) => {
   const words = def.stub || [...new Set(

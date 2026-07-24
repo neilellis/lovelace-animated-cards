@@ -123,6 +123,7 @@ function tankDocs() {
 
 registerKind("fuel-tank", {
   label: "Animated Fuel Tank",
+  stub: ["fuel", "tank", "petrol", "diesel", "lpg", "oil"],
   desc: "Tank that fills with amber fuel, twin counter-scrolling surfaces, red below the low mark",
   domains: ["sensor"],
   schema: tankRows(),

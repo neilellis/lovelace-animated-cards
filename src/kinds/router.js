@@ -98,6 +98,7 @@ const routerCard = (c) => {
 
 registerKind("router", {
   label: "Animated Router",
+  stub: ["router", "modem", "wifi", "fritz", "broadband", "internet"],
   desc: "Wifi rings radiate out while the router is up; dark and still when it isn't",
   domains: ["switch", "binary_sensor", "input_boolean"],
   deviceClass: ["connectivity"],

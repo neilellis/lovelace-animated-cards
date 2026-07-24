@@ -87,6 +87,7 @@ const serverCard = (c) => {
 
 registerKind("server", {
   label: "Animated Home Server",
+  stub: ["server", "nas", "synology", "proxmox", "unraid"],
   desc: "Rack box with flickering disk LEDs and a throbbing network glow while it's up",
   domains: ["switch", "binary_sensor", "input_boolean", "device_tracker"],
   deviceClass: ["connectivity", "running"],

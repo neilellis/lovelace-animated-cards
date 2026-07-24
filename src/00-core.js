@@ -10,6 +10,8 @@
 //   desc:    "one-line picker blurb",     // picker description (suffix added by shell)
 //   domains: ["switch", ...],             // entity domains (stub config + entity selector)
 //   deviceClass: ["motion", ...],         // optional — narrows stub-config entity choice
+//   stub: ["playstation", ...],           // optional — words that identify this device in an
+//                                        //   entity id/name; overrides the auto list (kind + label)
 //   entitySelector: { entity: {...} },    // optional — overrides the editor's entity selector
 //   schema:  [ ...ha-form rows... ],      // editor fields beyond entity + name (use F.* where possible)
 //   help:    { field: "helper text" },    // optional — editor helper text (merged over HELP)

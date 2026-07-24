@@ -137,6 +137,7 @@ registerKind("weather", {
     { name: "humidity_entity", selector: { entity: { domain: "sensor", device_class: "humidity" } } },
     { name: "wind_entity", selector: { entity: { domain: "sensor" } } },
     { name: "sun_entity", selector: { entity: { domain: "sun" } } },
+    { name: "tap_navigate", selector: { text: {} } },
     { name: "trend_entity", selector: { entity: { domain: "sensor" } } },
   ],
   help: {
@@ -147,6 +148,7 @@ registerKind("weather", {
     humidity_entity: "Humidity sensor (optional); falls back to the weather entity's attribute",
     wind_entity: "Wind-speed sensor (optional); falls back to the weather entity's attribute",
     sun_entity: "Sun entity used for day/dusk/night (default sun.sun)",
+    tap_navigate: "Navigation path opened on tap (e.g. #weather7 for a Bubble pop-up) instead of more-info",
     trend_entity: "Optional 24 h temperature-history sensor — draws a trend strip along the bottom edge",
   },
   docs: "Rebuilt on Mushroom + card-mod (upstream shipped it as a `custom:button-card`), so no " +
@@ -218,7 +220,7 @@ registerKind("weather", {
       ),
       icon_color: "white",
       fill_container: true,
-      tap_action: { action: "more-info" },
+      tap_action: c.tap_navigate ? { action: "navigate", navigation_path: c.tap_navigate } : { action: "more-info" },
       card_mod: { style: {
         // STATIC (both icon structures — see the TWO ICON STRUCTURES note in 01-factories.js):
         // the icon breathes gently like the sky object it mirrors, tinted by --wx-accent.

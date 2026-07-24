@@ -11,6 +11,7 @@
 
 registerKind("mailbox", {
   label: "Animated Mailbox",
+  stub: ["mailbox", "letterbox", "post"],
   desc: "Envelope drops into the icon and the flag waves while post is waiting; glowing status bar",
   domains: ["input_boolean", "binary_sensor", "sensor", "switch"],
   schema: [

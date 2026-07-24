@@ -108,6 +108,7 @@ const speakerCard = (c) => {
 
 registerKind("speaker", {
   label: "Animated Speaker",
+  stub: ["speaker", "sonos", "soundbar", "echo", "dot"],
   desc: "Media player whose icon thumps, shows EQ bars and a volume-scaled bass ring while playing",
   domains: ["media_player"],
   schema: [

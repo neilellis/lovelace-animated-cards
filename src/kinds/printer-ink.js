@@ -83,6 +83,7 @@ const PR_ICON_KEYFRAMES = `
 
 registerKind("printer-ink", {
   label: "Animated Printer Ink",
+  stub: ["printer", "ink", "toner", "cartridge"],
   desc: "Ink levels drawn as CMYK bars (or a single black tank) with a scanning beam while printing",
   domains: ["sensor", "binary_sensor"],
   schema: [
