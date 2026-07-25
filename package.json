@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "push-dev": "node build.mjs && node push-dev.mjs"
+    "push-dev": "node build.mjs && node push-dev.mjs",
+    "push-hacs": "node build.mjs && node push-hacs.mjs"
   },
   "license": "CC-BY-NC-SA-4.0"
 }

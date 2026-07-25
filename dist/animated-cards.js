@@ -649,7 +649,7 @@ const animClimate = (entity, name) => ({
     "mushroom-shape-icon$": `
       .shape {
         opacity: var(--ig-op, 1);
-        box-shadow: 0 0 8px 3px rgba(var(--temp-rgb, 120, 120, 120), 0.45);
+        box-shadow: 0 0 8px 3px rgba(var(--temp-rgb, 120, 120, 120), 0.45) !important;
         animation: var(--shape-animation, none);
       }
       @keyframes temp-pulse {
@@ -714,7 +714,7 @@ const animTemp = (entity, name = "Temperature") => ({
         opacity: var(--ig-op, 0.9);
         /* still by default — a room in the comfort band just sits there with a soft tinted glow;
            the breath only starts when the ramp says the temperature is worth looking at */
-        box-shadow: 0 0 10px 3px rgba(var(--temp-rgb, 150, 160, 170), 0.4);
+        box-shadow: 0 0 10px 3px rgba(var(--temp-rgb, 150, 160, 170), 0.4) !important;
         animation: var(--shape-animation, none);
       }
       @keyframes comfort-breathe {
@@ -754,7 +754,7 @@ const animHum = (entity, name = "Humidity") => ({
         --icon-color: rgba(var(--hum-rgb, 150, 160, 170), 1) !important;
         opacity: var(--ig-op, 0.9);
         /* still by default (see animTemp) — the healthy 40–70 % band gets a static glow */
-        box-shadow: 0 0 10px 3px rgba(var(--hum-rgb, 150, 160, 170), 0.4);
+        box-shadow: 0 0 10px 3px rgba(var(--hum-rgb, 150, 160, 170), 0.4) !important;
         animation: var(--shape-animation, none);
       }
       @keyframes hum-bob {

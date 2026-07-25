@@ -52,6 +52,16 @@ Validate with `node --check src/kinds/<file>.js` (parse only — globals are fin
    `deviceClass` where it helps entity pickers, `schema` rows (reuse `F.*`), `help` text for
    every non-obvious option, and an optional `docs` paragraph (rendered into the README)
    for required companion sensors or caveats.
+10. **Idle is quiet — no exceptions.** *"Inactivity should be represented as a lack of
+   animation"* (Neil, 2026-07-25). The inactive branch of every state table resolves to
+   `animation: none`, a slightly reduced opacity and a STATIC tinted glow — colour without
+   motion is the idle language. Motion on a card must mean something is happening in the
+   house, so an empty room's motion card does not sweep, a satisfied radiator does not
+   pulse, and a comfortable room's temp tile does not breathe. A card with no idle state at
+   all (`pixel-clock`'s LED-panel sim) is a novelty, not a precedent — write the quiet
+   sibling instead (`clock`). NB static `box-shadow` on `.shape` needs `!important`:
+   Mushroom's own tile CSS arrives via adoptedStyleSheets and wins the tie (keyframes don't
+   care, which is why looping cards never hit this).
 
 ## Style
 
