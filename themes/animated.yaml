@@ -176,6 +176,12 @@ Animated:
   # `background-color` / `box-shadow`, where a gradient silently becomes transparent/none. Cards
   # that want a gradient draw their own, which is what the animated cards do.
   primary-background-color: "#06080B"
+  # hui-view-background paints the page from --lovelace-background FIRST and only falls back to
+  # primary-background-color. Any profile theme that defines lovelace-background (Graphite does)
+  # therefore leaks its page colour through a per-view Animated theme — every key here is scoped
+  # to the view container, but an unset key lets the profile value inherit straight past it.
+  # Setting it explicitly is what makes the ink-behind-lit-panels depth actually appear.
+  lovelace-background: "#06080B"
   secondary-background-color: "#151C25"
   card-background-color: "#151C25"
   ha-card-background: "#151C25"
@@ -386,6 +392,7 @@ Animated:
   modes:
     dark:
       primary-background-color: "#06080B"
+      lovelace-background: "#06080B"
       secondary-background-color: "#151C25"
       card-background-color: "#151C25"
       ha-card-background: "#151C25"
