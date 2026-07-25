@@ -1,6 +1,6 @@
 {
   "name": "lovelace-animated-cards",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Animated Lovelace cards (Mushroom + card-mod) as real, pickable cards \u2014 based on Anashost/HA-Animated-cards, with house additions and rules",
   "type": "module",
   "scripts": {

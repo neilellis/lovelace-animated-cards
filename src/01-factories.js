@@ -431,8 +431,8 @@ const animMotion = (entity, name, { icon = "mdi:motion-sensor", columns = 6, row
         --sonar-op: {{ '1' if is_active else '0.7' }};
         background-image: var(--sonar-bg) !important;
         transition: background-image 0.5s ease;
-        border-radius: 12px;
-        border: none;
+        border-radius: var(--ha-card-border-radius, 12px);
+        border: var(--ha-card-border-width, 1px) solid var(--ha-card-border-color, transparent);
         overflow: hidden;
       }
       ha-card::before {

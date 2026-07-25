@@ -59,7 +59,7 @@ registerKind("boiler", {
         --bo-wave: {{ 'none' if t <= ${s.waveOff} else wave }};
         --bo-shadow: {{ '0 0 25px rgba(' ~ rgb ~ ', 0.5)' }};
         opacity: {{ '0.5' if t < -900 else '1' }};
-        border-radius: 12px;
+        border-radius: var(--ha-card-border-radius, 12px);
         position: relative;
         overflow: hidden;
         z-index: 0;

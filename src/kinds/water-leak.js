@@ -101,7 +101,7 @@ registerKind("water-leak", {
         background: #1c1c1c !important;
         background-image: var(--wl-ambient, none) !important;
         border: none !important;
-        border-radius: 12px;
+        border-radius: var(--ha-card-border-radius, 12px);
         position: relative;
         overflow: hidden;
         transition: all 0.5s ease;
@@ -146,7 +146,7 @@ registerKind("water-leak", {
         opacity: {{ '0.5' if dead else '1' }};
         background-color: #1c1c1c !important;
         background-image: var(--wl-fill, none) !important;
-        border-radius: 12px;
+        border-radius: var(--ha-card-border-radius, 12px);
         position: relative;
         overflow: hidden;
         z-index: 0;
