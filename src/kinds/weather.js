@@ -313,10 +313,15 @@ ${WX_SCENE}${WX_TREND(c.trend_entity)}
             opacity: var(--wx-l2-op, 0);
             animation: var(--wx-l2-anim, none);
           }
-          /* keep the readout above the weather */
+          /* Keep the readout above the weather — and INERT. The tile's clickable layer is
+             \`div.background\` (it carries the action handler + ripple); raising .container above it
+             without this line meant every tap on the icon or text hit a dead layer and the card's
+             tap_action silently never fired. Nothing in here is interactive, so make the whole
+             stack transparent to the pointer and let taps fall through to the background. */
           .container, .content, mushroom-card-content, mushroom-state-item, mushroom-state-info, ha-tile-icon {
             position: relative;
             z-index: 3;
+            pointer-events: none;
           }
           @keyframes wx-breathe { 0%, 100% { transform: scale(0.97); } 50% { transform: scale(1.05); } }
           @keyframes wx-drift  { from { background-position: 0 18px; } to { background-position: -300px 18px; } }

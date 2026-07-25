@@ -1,16 +1,25 @@
 # Animated Cards for Lovelace
 
-Every animated card design from **[Anashost/HA-Animated-cards](https://github.com/Anashost/HA-Animated-cards)**
-as a **real, pickable Lovelace card**: install via HACS, open any dashboard's *Add card*
-dialog, search "Animated", pick an entity in the visual editor — done. No YAML pasting,
-no hand-editing entity ids into card-mod templates.
+Animated Lovelace cards as **real, pickable cards**: install via HACS, open any dashboard's
+*Add card* dialog, search "Animated", pick an entity in the visual editor — done. No YAML
+pasting, no hand-editing entity ids into card-mod templates.
+
+**Based on [Anashost/HA-Animated-cards](https://github.com/Anashost/HA-Animated-cards)** —
+that library is where this one started, and most kinds here are still a parameterised version
+of one of its designs (each carries an `// upstream: README #NN` comment). It has since grown
+past a straight repackaging: some cards are new designs that have no upstream counterpart, a
+number of the ported ones have been reworked or fixed, and the whole set now follows house
+rules of its own (see [DESIGN.md](DESIGN.md)) — notably *idle is quiet*: a card that isn't
+doing anything doesn't animate. So expect a **family resemblance to the upstream cards, not a
+pixel-for-pixel match**.
 
 > [!IMPORTANT]
-> **All animation designs are the work of [@Anasbox](https://www.youtube.com/@anasbox)**
-> (GitHub: [Anashost](https://github.com/Anashost)). This project only re-packages his
-> [HA-Animated-cards](https://github.com/Anashost/HA-Animated-cards) library — Mushroom +
-> card-mod YAML configs — into parameterised custom cards. If you enjoy these cards, watch
-> his build videos and support him:
+> **The animation designs this project is built on are the work of
+> [@Anasbox](https://www.youtube.com/@anasbox)** (GitHub:
+> [Anashost](https://github.com/Anashost)) — his
+> [HA-Animated-cards](https://github.com/Anashost/HA-Animated-cards) library of Mushroom +
+> card-mod YAML configs. Any later additions or changes here are not his, and shouldn't be
+> held against him. If you enjoy these cards, watch his build videos and support him:
 >
 > - 🎬 YouTube: [@anasbox](https://www.youtube.com/@anasbox) — card batch walkthroughs:
 >   [Batch 1](https://youtu.be/5vYz37AqSO4) · [Batch 2](https://youtu.be/izx0JMrnhWE) ·
@@ -25,8 +34,9 @@ no hand-editing entity ids into card-mod templates.
 
 These are **[@Anasbox](https://www.youtube.com/@anasbox)'s own batch reels**, hosted in and
 linked back to **[Anashost/HA-Animated-cards](https://github.com/Anashost/HA-Animated-cards)** —
-they show the designs this repo packages. Click any of them for the source repo; the batch
-walkthrough videos are linked above.
+they show the upstream designs this repo is based on. Cards here may look a little different
+(see the note at the top). Click any of them for the source repo; the batch walkthrough videos
+are linked above.
 
 [![Batch 1 — the first set of animated card designs](https://github.com/user-attachments/assets/4f5a1af0-d89b-4ed9-9c8c-36e678045580)](https://github.com/Anashost/HA-Animated-cards)
 
@@ -40,8 +50,9 @@ walkthrough videos are linked above.
 
 ## Licence
 
-The upstream library is licensed **[CC BY-NC-SA 4.0](LICENSE)**; this derivative work is
-released under the **same licence**, with attribution to Anashost as required. In short:
+The upstream library is licensed **[CC BY-NC-SA 4.0](LICENSE)**; this derivative work —
+including the cards that are original to it — is released under the **same licence**, with
+attribution to Anashost as required. In short:
 free for personal, non-commercial Home Assistant use; share adaptations under the same
 terms; keep the credit.
 

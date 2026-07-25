@@ -148,6 +148,8 @@ in the set: nothing loops, the hands just ease to their new angle each minute.`,
         ha-tile-icon { --tile-icon-size: 62px; width: 62px; height: 62px; }
         /* the dial is the icon — the mdi glyph would sit under the hands */
         ha-state-icon, ha-icon { display: none !important; }
+        /* content is decoration; taps belong to the tile's background layer (DESIGN.md #11) */
+        .container, ha-tile-icon, ha-tile-info { pointer-events: none; }
         ha-card {
           --clk-rgb: ${rgb};${angles}
           --card-primary-color: rgba(236, 242, 248, 0.96);

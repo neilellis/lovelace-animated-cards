@@ -1,10 +1,18 @@
-# Converting an upstream card into a kind
+# Writing a kind
 
-Source corpus: `Anashost/HA-Animated-cards` (CC BY-NC-SA 4.0) — one markdown file per card
-under the `animated-cards` skill's `reference/` tree. Each file holds a YAML Mushroom card
-with a `card_mod` style block, hardcoded to the author's entities. A "kind" is that card
-generalised: entities/colours/thresholds become options, and the config is produced by a
-`make(c)` function registered with `registerKind` (contract in `src/00-core.js`).
+A "kind" is one card design, generalised: entities/colours/thresholds become options, and the
+config is produced by a `make(c)` function registered with `registerKind` (contract in
+`src/00-core.js`).
+
+Most kinds started life as a conversion from `Anashost/HA-Animated-cards` (CC BY-NC-SA 4.0) —
+one markdown file per card under the `animated-cards` skill's `reference/` tree, each holding a
+YAML Mushroom card with a `card_mod` style block hardcoded to the author's entities. Converting
+one is still the common case, and ported kinds keep an `// upstream: README #NN` comment.
+
+But this is no longer only a repackaging: kinds are also written from scratch here, and ported
+ones get reworked when upstream's choice conflicts with the rules below (rule 10 in particular
+inverted the motion card and quietened several others). **Match the house rules, not the
+upstream YAML** — where they disagree, the rules win and the kind's comment says why.
 
 ## File layout
 
@@ -62,6 +70,13 @@ Validate with `node --check src/kinds/<file>.js` (parse only — globals are fin
    sibling instead (`clock`). NB static `box-shadow` on `.shape` needs `!important`:
    Mushroom's own tile CSS arrives via adoptedStyleSheets and wins the tie (keyframes don't
    care, which is why looping cards never hit this).
+11. **Don't break the tap.** On the tile structure the clickable layer is `div.background` — a
+   SIBLING of `div.container`, not an ancestor of it. Any content you raise over it
+   (`z-index` on `.container`/`.content`/`ha-tile-icon`/`ha-tile-info`) becomes a dead hit
+   target and the card's `tap_action` silently never fires: no error, no ripple, nothing.
+   Raised decoration must carry `pointer-events: none` (this cost an hour on the `weather`
+   kind's pop-up tap). Full-card `::before`/`::after` scenery needs it too. After adding any
+   overlay, TAP THE CARD — a card that looks right and does nothing is the failure mode here.
 
 ## Style
 

@@ -130,8 +130,11 @@ by ping. The second line reads "▼ 50.4 ▲ 36.3 Mbps · 45 ms · tested 12 min
           clip-path: inset(0 0 0 0 round var(--ha-card-border-radius, 12px));
           --card-primary-font-size: 1.15rem;
         }
-        /* keep the reading above the rain */
-        ha-tile-icon, mushroom-shape-icon, ha-tile-info, mushroom-state-info { position: relative; z-index: 3; }
+        /* keep the reading above the rain — and inert, so taps reach the tile's clickable
+           background layer instead of dying on the raised content (see DESIGN.md #11) */
+        ha-tile-icon, mushroom-shape-icon, ha-tile-info, mushroom-state-info {
+          position: relative; z-index: 3; pointer-events: none;
+        }
         /* download data-rain: columns of cyan packets falling at the measured rate. The layer
            is 200% tall and slides half its height, so the loop is seamless; transform-only. */
         ha-card::before {
