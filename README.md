@@ -81,6 +81,44 @@ kinds whose whole premise is a dumb appliance on a metered plug (`washer-plug`, 
 `dryer`, `washer-dryer-combo`, `fridge`, `charger`) take a `power_entity` of their own, since
 there the draw is the only signal available.
 
+## The theme
+
+`themes/animated.yaml` is the other half of the look. The cards draw their own surfaces, so on a
+stock dashboard they sit next to built-in tiles that use different colours, radii and state
+tints — right cards, wrong room. The theme pushes the cards' language (one cyan accent for
+active, steel-blue for idle, the same semantic red/amber/green, the same radius and hairline
+panel edge) into **Home Assistant's own design tokens**, so every card inherits it: tiles,
+thermostat, history and energy graphs, badges, dialogs — and third-party cards too, as far as
+they respect the tokens.
+
+It's a plain HA theme, not part of the JS bundle, so HACS won't install it for you (a HACS repo
+is one category, and this one is a Dashboard/plugin repo):
+
+```bash
+# on the HA box
+mkdir -p /config/themes
+# copy themes/animated.yaml from this repo into /config/themes/animated.yaml
+```
+
+`configuration.yaml` needs the standard include (most setups already have it):
+
+```yaml
+frontend:
+  themes: !include_dir_merge_named themes
+```
+
+Then **Developer tools → YAML → Reload themes**, and pick *Animated* in **Profile → Theme**.
+
+Choose it in your **profile** if you want the whole app themed — the sidebar, header, dialogs
+and more-info panels live outside any dashboard, so a per-view `theme: Animated` restyles only
+that view's cards and leaves the chrome on whatever the profile is using. Per-view is still the
+right choice on a shared/multi-user setup where you don't want to change what everyone else
+sees.
+
+**It is dark-only, deliberately.** The cards are dark glass by design — several of them
+hardcode light-on-dark text (a washer drum is not a white rectangle) — so a light mode would
+render those cards nearly unreadable rather than merely different. Tested, not assumed.
+
 ## Card index
 
 <!-- CARD_INDEX -->

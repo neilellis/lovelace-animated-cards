@@ -1,0 +1,325 @@
+# Animated — the theme that goes with the Animated Cards.
+#
+# The cards draw their own surfaces: a near-black blue-tinted panel, one saturated cyan for
+# "something is happening", steel-blue for idle, a small semantic red/amber/green for state.
+# Dropped onto a stock dashboard they look like visitors from another app — the built-in tiles
+# are flat grey, the radii disagree, the state tints are HA's own. This theme pushes the cards'
+# language down into Home Assistant's design tokens so every card inherits it: tiles, thermostat,
+# history and energy graphs, badges, dialogs, the YAML editor — and third-party cards, as far as
+# they respect the tokens.
+#
+# Every key below was checked against the frontend source (`src/resources/theme/color/`), not
+# copied from other people's themes: no dead `paper-item-*` leftovers, no invented
+# `--rgb-red-color` that nothing reads. Where a token is inert in current HA, it isn't here.
+#
+# Two token systems are set on purpose:
+#   · HA's own    `--red-color`, `--amber-color`, …  → built-in cards, badges, state colours
+#   · Mushroom's  `--rgb-red`, `--rgb-amber`, …      → every Mushroom card, which is what the
+#                                                      animated cards are built from
+# Same values in both, so a stock tile and an animated card resolve the same red.
+#
+# DARK ONLY, on purpose. There is no `modes:` block, so HA applies this identically whatever the
+# client's light/dark setting says. A light mode was written and tested, then thrown away: the
+# cards are dark glass by design and several hardcode light-on-dark text (the clock kind's
+# `--card-primary-color: rgba(236, 242, 248, 0.96)`, the appliance cards' `#e9eef5` screen text),
+# so on white surfaces they went from "different" to "unreadable". A theme that misrepresents the
+# cards it ships with is worse than one that only does nights.
+#
+# Install: copy to `/config/themes/animated.yaml`; make sure `configuration.yaml` has
+#   frontend:
+#     themes: !include_dir_merge_named themes
+# then Developer tools → YAML → Reload themes, and pick "Animated" in Profile → Theme.
+# Per-view (`theme: Animated` on a Lovelace view) themes that view's cards only — the sidebar,
+# header and dialogs live outside it and stay on the profile theme.
+
+Animated:
+  # ── The accent, in two strengths ───────────────────────────────────────────────────────
+  # rgb(0, 200, 255) is what the cards run when active (the washer's glow, the radar ping, the
+  # speedtest rain), so it drives everything that reads as STATE or a small control.
+  #
+  # `primary-color` is deliberately NOT that cyan: HA paints whole surfaces with it — the
+  # media-control card fills its entire body with it when there's no album art — and #00C8FF at
+  # that size is a neon slab that white text fails against (1.96:1). #0B7A99 is the same hue at
+  # fill strength (white on it 4.93:1) and still reads as family. Found by looking, not by
+  # theory: the first draft turned the TV card into a highlighter.
+  primary-color: "#0B7A99"
+  rgb-primary-color: 11, 122, 153
+  dark-primary-color: "#07566E"
+  darker-primary-color: "#053F52"
+  light-primary-color: "#00C8FF"
+  accent-color: "#00C8FF"
+  rgb-accent-color: 0, 200, 255
+
+  # ── Semantic palette (HA tokens) ───────────────────────────────────────────────────────
+  # HA derives every domain's state colour from these — `--state-light-active-color` is
+  # `var(--amber-color)`, locks are `var(--green-color)`, and so on — so retinting here is what
+  # makes a stock tile agree with an animated card without touching either.
+  #
+  # Lights and switches stay AMBER rather than being forced to the cyan accent: a lit bulb is
+  # warm, and the animated lamp cards glow in the bulb's own colour. Cyan means "this thing is
+  # doing something"; amber means "this light is on". Two different sentences.
+  red-color: "#F44336"
+  pink-color: "#F06292"
+  purple-color: "#A78BFA"
+  deep-purple-color: "#8B5CF6"
+  indigo-color: "#6C8DFF"
+  blue-color: "#2196F3"
+  light-blue-color: "#4FC3F7"
+  cyan-color: "#00C8FF"
+  teal-color: "#26C6DA"
+  green-color: "#3DDC84"
+  light-green-color: "#8BC34A"
+  lime-color: "#C0CA33"
+  yellow-color: "#FFEB3B"
+  amber-color: "#FFC66D"
+  orange-color: "#FFA726"
+  deep-orange-color: "#FF7043"
+  brown-color: "#A1887F"
+  grey-color: "#8B95A3"
+  light-grey-color: "#B9C2CE"
+  dark-grey-color: "#59636F"
+  blue-grey-color: "#6C89A8"
+  black-color: "#05070A"
+  white-color: "#FFFFFF"
+  disabled-color: "#4A535E"
+
+  # ── Same palette, Mushroom's token names ───────────────────────────────────────────────
+  # Mushroom resolves `icon_color: cyan` to `--rgb-cyan`, NOT to `--cyan-color`, so without this
+  # block every animated card would keep Mushroom's stock hues while the built-in cards moved.
+  # This is the actual hinge of the theme.
+  rgb-red: 244, 67, 54
+  rgb-pink: 240, 98, 146
+  rgb-purple: 167, 139, 250
+  rgb-deep-purple: 139, 92, 246
+  rgb-indigo: 108, 141, 255
+  rgb-blue: 33, 150, 243
+  rgb-light-blue: 79, 195, 247
+  rgb-cyan: 0, 200, 255
+  rgb-teal: 38, 198, 218
+  rgb-green: 61, 220, 132
+  rgb-light-green: 139, 195, 74
+  rgb-lime: 192, 202, 51
+  rgb-yellow: 255, 235, 59
+  rgb-amber: 255, 198, 109
+  rgb-orange: 255, 167, 38
+  rgb-deep-orange: 255, 112, 67
+  rgb-brown: 161, 136, 127
+  rgb-grey: 139, 149, 163
+  rgb-light-grey: 185, 194, 206
+  rgb-dark-grey: 89, 99, 111
+  rgb-blue-grey: 108, 137, 168
+  rgb-black: 5, 7, 10
+  rgb-white: 255, 255, 255
+  rgb-disabled: 74, 83, 94
+  rgb-danger: 244, 67, 54
+  rgb-warning: 255, 167, 38
+  rgb-success: 61, 220, 132
+  rgb-info: 79, 195, 247
+  # Mushroom's per-domain state tints. Lights amber (see above), "running" things cyan.
+  rgb-state-entity: 0, 200, 255
+  rgb-state-light: 255, 198, 109
+  rgb-state-fan: 0, 200, 255
+  rgb-state-media-player: 0, 200, 255
+  rgb-state-humidifier: 79, 195, 247
+  rgb-state-number: 0, 200, 255
+  rgb-state-vacuum: 38, 198, 218
+  rgb-state-cover: 0, 200, 255
+  rgb-state-cover-open: 0, 200, 255
+  rgb-state-cover-closed: 108, 137, 168
+  rgb-state-lock: 61, 220, 132
+  rgb-state-lock-locked: 61, 220, 132
+  rgb-state-lock-unlocked: 244, 67, 54
+  rgb-state-lock-pending: 255, 167, 38
+  rgb-state-alarm-disarmed: 108, 137, 168
+  rgb-state-alarm-armed: 244, 67, 54
+  rgb-state-alarm-triggered: 244, 67, 54
+  rgb-state-person-home: 0, 200, 255
+  rgb-state-person-not-home: 108, 137, 168
+  rgb-state-person-zone: 79, 195, 247
+  rgb-state-person-unknown: 89, 99, 111
+  rgb-state-climate-heat: 255, 112, 67
+  rgb-state-climate-cool: 79, 195, 247
+  rgb-state-climate-heat-cool: 255, 198, 109
+  rgb-state-climate-auto: 0, 200, 255
+  rgb-state-climate-dry: 255, 167, 38
+  rgb-state-climate-fan-only: 108, 137, 168
+  rgb-state-climate-idle: 108, 137, 168
+  rgb-state-climate-off: 89, 99, 111
+  rgb-state-update-on: 0, 200, 255
+  rgb-state-update-off: 108, 137, 168
+  rgb-state-update-installing: 255, 167, 38
+
+  # ── Surfaces ───────────────────────────────────────────────────────────────────────────
+  # The page is ink, the cards are lit panels floating on it — which is exactly how the
+  # floorplan reads, and the floorplan's own CSS now consumes these two tokens, so a room on the
+  # plan is literally drawn in the card colour.
+  #
+  # `ha-card-background` must be a FLAT colour: ha-card consumes it as `background-color`, so a
+  # linear-gradient() silently drops and every card renders with no surface at all (verified on
+  # 2026.7.4 — computed background-color came back rgba(0, 0, 0, 0) and the dashboard turned into
+  # floating text). Depth comes from the hairline edge and the shadow instead; a card that wants
+  # a gradient draws its own, which is what the animated cards do.
+  primary-background-color: "#06080B"
+  secondary-background-color: "#151C25"
+  card-background-color: "#151C25"
+  rgb-card-background-color: 21, 28, 37
+  ha-card-background: "#151C25"
+  ha-card-border-color: rgba(122, 160, 200, 0.14)
+  ha-card-border-width: 1px
+  ha-card-box-shadow: 0 10px 24px rgba(0, 0, 0, 0.40)
+  divider-color: rgba(122, 160, 200, 0.14)
+  outline-color: rgba(122, 160, 200, 0.18)
+  clear-background-color: "#0D1219"
+  chip-background-color: rgba(122, 160, 200, 0.14)
+  data-table-background-color: "#151C25"
+  table-row-background-color: "#151C25"
+  table-row-alternative-background-color: "#1A222C"
+  table-header-background-color: "#1A222C"
+
+  # ── Geometry ───────────────────────────────────────────────────────────────────────────
+  # 16px sits between HA's 12 and the Alexa cards' 18 — round enough to read as one family,
+  # tight enough that a 6-column tile doesn't become a pill. The animated cards clip their
+  # scenery with `inset(0 0 0 0 round var(--ha-card-border-radius))`, so they follow this.
+  ha-card-border-radius: 16px
+  ha-dialog-border-radius: 20px
+  ha-badge-border-radius: 14px
+  mdc-shape-small: 12px
+  mdc-shape-medium: 16px
+  mdc-shape-large: 20px
+
+  # ── Type ───────────────────────────────────────────────────────────────────────────────
+  # Body type stays HA's own — the cards don't fight it. The mono face is pinned to the stack
+  # the HUD readouts use (speedtest gauge, clock digits, floorplan temps), so a markdown code
+  # block and a card readout look related.
+  ha-font-family-code: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace
+  code-font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace
+
+  # ── Text ───────────────────────────────────────────────────────────────────────────────
+  # Cool white on ink, blue-grey secondary — the Alexa cards' screen text, promoted to the whole
+  # UI: 15.4:1 and 6.9:1 on the card surface.
+  primary-text-color: "#E9EEF5"
+  rgb-primary-text-color: 233, 238, 245
+  secondary-text-color: "#93A1B5"
+  rgb-secondary-text-color: 147, 161, 181
+  text-primary-color: "#05070A"
+  rgb-text-primary-color: 5, 7, 10
+  text-light-primary-color: "#E9EEF5"
+  disabled-text-color: "#6B7581"
+
+  # ── Chrome ─────────────────────────────────────────────────────────────────────────────
+  app-header-background-color: "#06080B"
+  app-header-text-color: "#E9EEF5"
+  app-header-edit-background-color: "#151C25"
+  app-header-border-bottom: 1px solid rgba(122, 160, 200, 0.14)
+  app-theme-color: "#06080B"
+  sidebar-background-color: "#06080B"
+  sidebar-icon-color: "#8B95A3"
+  sidebar-text-color: "#C2CCD8"
+  sidebar-selected-icon-color: "#00C8FF"
+  sidebar-selected-text-color: "#E9EEF5"
+
+  # ── State ──────────────────────────────────────────────────────────────────────────────
+  # Idle steel-blue, active cyan, dead grey — the cards' own three-way split, so a stock tile
+  # dims and lifts on the same cue an animated card does.
+  state-icon-color: "#8AB4FF"
+  state-active-color: "#00C8FF"
+  state-inactive-color: "#6B7581"
+  state-unavailable-color: "#59636F"
+  state-icon-error-color: "#F44336"
+
+  # ── Controls ───────────────────────────────────────────────────────────────────────────
+  switch-checked-color: "#00C8FF"
+  switch-unchecked-color: "#6B7581"
+  switch-unchecked-track-color: "#39424E"
+  slider-color: "#00C8FF"
+  slider-secondary-color: "#0B7A99"
+  slider-bar-color: "#39424E"
+  slider-track-color: "#39424E"
+  input-fill-color: "#1A222C"
+  input-ink-color: "#E9EEF5"
+  input-label-ink-color: "#93A1B5"
+  input-idle-line-color: rgba(122, 160, 200, 0.30)
+  input-hover-line-color: "#00C8FF"
+  input-dropdown-icon-color: "#8B95A3"
+  input-disabled-fill-color: "#12181F"
+  input-disabled-ink-color: "#6B7581"
+  input-disabled-line-color: rgba(122, 160, 200, 0.12)
+  input-outlined-idle-border-color: rgba(122, 160, 200, 0.30)
+  input-outlined-hover-border-color: "#00C8FF"
+  input-outlined-disabled-border-color: rgba(122, 160, 200, 0.12)
+  ha-assist-chip-filled-container-color: rgba(122, 160, 200, 0.14)
+  ha-assist-chip-active-container-color: rgba(0, 200, 255, 0.18)
+  ha-button-neutral-color: "#8B95A3"
+  ha-button-neutral-light-color: rgba(139, 149, 163, 0.16)
+  ha-button-primary-light-color: rgba(0, 200, 255, 0.16)
+  ha-button-warning-light-color: rgba(255, 167, 38, 0.16)
+
+  # ── Dialogs / menus ────────────────────────────────────────────────────────────────────
+  # More-info dialogs and Bubble pop-ups render OUTSIDE the dashboard view, so these only take
+  # effect when the theme is the user's PROFILE theme, not a per-view one.
+  ha-dialog-surface-background: "#151C25"
+  mdc-dialog-scrim-color: rgba(5, 7, 10, 0.72)
+  mdc-theme-surface: "#151C25"
+  mdc-theme-on-surface: "#E9EEF5"
+  mdc-theme-primary: "#00C8FF"
+  mdc-theme-secondary: "#00C8FF"
+  mdc-text-field-fill-color: "#1A222C"
+  mdc-text-field-ink-color: "#E9EEF5"
+  mdc-text-field-label-ink-color: "#93A1B5"
+  mdc-select-fill-color: "#1A222C"
+  mdc-select-ink-color: "#E9EEF5"
+
+  # ── Graphs ─────────────────────────────────────────────────────────────────────────────
+  # History and energy charts get the same palette so a chart under a card isn't a different
+  # product. Energy keeps its conventional meanings (solar warm, grid cool, gas violet).
+  history-unavailable-color: rgba(139, 149, 163, 0.20)
+  history-unknown-color: "#39424E"
+  energy-grid-consumption-color: "#4FC3F7"
+  energy-grid-return-color: "#3DDC84"
+  energy-solar-color: "#FFC66D"
+  energy-battery-in-color: "#8BC34A"
+  energy-battery-out-color: "#00C8FF"
+  energy-gas-color: "#A78BFA"
+  energy-water-color: "#26C6DA"
+  energy-non-fossil-color: "#3DDC84"
+
+  # ── Badges / alerts ────────────────────────────────────────────────────────────────────
+  label-badge-background-color: "#151C25"
+  label-badge-text-color: "#E9EEF5"
+  label-badge-red: "#F44336"
+  label-badge-green: "#3DDC84"
+  label-badge-blue: "#00C8FF"
+  label-badge-yellow: "#FFC66D"
+  label-badge-grey: "#59636F"
+  error-color: "#F44336"
+  rgb-error-color: 244, 67, 54
+  warning-color: "#FFA726"
+  rgb-warning-color: 255, 167, 38
+  success-color: "#3DDC84"
+  rgb-success-color: 61, 220, 132
+  info-color: "#4FC3F7"
+  rgb-info-color: 79, 195, 247
+
+  # ── YAML / code editor ─────────────────────────────────────────────────────────────────
+  # The automation and card editors are where a house like this actually spends its time, so
+  # they're part of the look rather than an afterthought — same mono face, accent on keys.
+  code-editor-background-color: "#0D1219"
+  markdown-code-background-color: "#0D1219"
+  codemirror-keyword: "#00C8FF"
+  codemirror-property: "#8AB4FF"
+  codemirror-atom: "#FFC66D"
+  codemirror-number: "#FFC66D"
+  codemirror-string: "#3DDC84"
+  codemirror-string-2: "#3DDC84"
+  codemirror-comment: "#6B7581"
+  codemirror-variable: "#E9EEF5"
+  codemirror-variable-2: "#8AB4FF"
+  codemirror-variable-3: "#A78BFA"
+  codemirror-def: "#00C8FF"
+  codemirror-meta: "#93A1B5"
+  codemirror-operator: "#F06292"
+  codemirror-qualifier: "#26C6DA"
+  codemirror-tag: "#F44336"
+  codemirror-attribute: "#A78BFA"
+  codemirror-type: "#4FC3F7"
+  codemirror-builtin: "#FFA726"
