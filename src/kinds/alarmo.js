@@ -1,6 +1,7 @@
 // upstream: README #53 - Alarmo (Requires card-mod v3.4.6)
-// The Alarmo keypad card, lit from the inside: a state-coloured inset glow that breathes when
-// disarmed, pulses when armed or arming, and strobes when triggered. Separate from the `alarm`
+// The Alarmo keypad card, lit from the inside: a state-coloured inset glow. Disarmed is STILL
+// (idle is quiet — an unarmed house is not doing anything); armed and arming pulse; triggered
+// strobes. Motion here always means the alarm is doing something. Separate from the `alarm`
 // kind because it renders a completely different card (`custom:alarmo-card`, its own HACS
 // install) — the shared bit is only the state machine.
 //
@@ -11,7 +12,7 @@
 
 registerKind("alarmo", {
   label: "Animated Alarmo Keypad",
-  desc: "Alarmo keypad card with a state-coloured inner glow — breathing disarmed, pulsing armed, strobing triggered",
+  desc: "Alarmo keypad card with a state-coloured inner glow — still when disarmed, pulsing when armed or arming, strobing when triggered",
   domains: ["alarm_control_panel"],
   schema: [
     { name: "keep_keypad_visible", selector: { boolean: {} } },
@@ -22,7 +23,7 @@ registerKind("alarmo", {
   ],
   help: {
     keep_keypad_visible: "Show the keypad even while disarmed (alarmo-card option)",
-    disarmed_glow: "Disarmed glow as R, G, B (default 0, 255, 100)",
+    disarmed_glow: "Disarmed tint as R, G, B — a STILL glow, no animation (default 96, 135, 170 idle steel)",
     armed_glow: "Armed-away glow as R, G, B (default 244, 67, 54) — armed_home stays blue",
     triggered_glow: "Triggered glow as R, G, B (default 255, 0, 0)",
     pending_glow: "Arming/pending glow as R, G, B (default 255, 152, 0)",
@@ -40,8 +41,10 @@ registerKind("alarmo", {
       ha-card {
         {% set s = states(config.entity) %}
         {% if s == 'disarmed' %}
-          --alarmo-rgb: ${c.disarmed_glow || "0, 255, 100"};
-          --alarmo-anim: glow-breathe 4s ease-in-out infinite;
+          {# Disarmed is the IDLE state: a quiet, still keypad. It used to breathe green, which
+             read as "something is happening" when nothing was — §6 idle is quiet. #}
+          --alarmo-rgb: ${c.disarmed_glow || "96, 135, 170"};
+          --alarmo-anim: none;
         {% elif s == 'triggered' %}
           --alarmo-rgb: ${c.triggered_glow || "255, 0, 0"};
           --alarmo-anim: glow-strobe 0.5s linear infinite;
@@ -63,11 +66,6 @@ registerKind("alarmo", {
         box-shadow: var(--ha-card-box-shadow, none), inset 0 0 20px rgba(var(--alarmo-rgb, 158, 158, 158), 0.2);
         animation: var(--alarmo-anim, none);
         transition: box-shadow 1s ease;
-      }
-      @keyframes glow-breathe {
-        0%   { box-shadow: var(--ha-card-box-shadow, none), inset 0 0 10px rgba(var(--alarmo-rgb, 158, 158, 158), 0.1); }
-        50%  { box-shadow: var(--ha-card-box-shadow, none), inset 0 0 60px rgba(var(--alarmo-rgb, 158, 158, 158), 0.4); }
-        100% { box-shadow: var(--ha-card-box-shadow, none), inset 0 0 10px rgba(var(--alarmo-rgb, 158, 158, 158), 0.1); }
       }
       @keyframes glow-pulse {
         0%   { box-shadow: var(--ha-card-box-shadow, none), inset 0 0 20px rgba(var(--alarmo-rgb, 158, 158, 158), 0.2); }

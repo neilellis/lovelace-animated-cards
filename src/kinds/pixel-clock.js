@@ -6,9 +6,10 @@
 // washing across the glass and glowing dot-matrix digits. `now()` in the templates re-renders
 // the card every minute, which is exactly a clock's tick.
 //
-// Always-on animation is normally against the idle-is-quiet rule (DESIGN.md §6) — a clock is
-// the sanctioned exception (like the motion radar): its whole premise is a living display, and
-// the marquee is slow (8s) so it reads ambient, not busy.
+// This one is deliberately LOUD: it simulates a physical LED panel, so it flickers, scans and
+// marquees whether or not anything is happening. That fights the idle-is-quiet rule and it fights
+// the rest of a view — use it as a novelty/standalone panel. For a clock that sits alongside the
+// other cards, use the `clock` kind (analog dial or quiet digital, zero looping animation).
 
 // The digit sizes live in BOTH text-shadow scopes (tile + legacy Mushroom): the card's
 // .primary/.secondary set their own font-size inside the shadow root, so host-level

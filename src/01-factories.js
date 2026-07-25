@@ -390,10 +390,12 @@ const animLamp = (entity, name, { active = "on", collapsible = true } = {}) => (
   grid_options: { columns: 6, rows: 2 },
 });
 
-// #71 Motion — radar HUD: a "SCANNING" conic sweep while idle, red "DETECTED" sonar shockwave
-// on motion, with a status badge + bottom scan bar. The radar ring (shadow block) is STATIC so
-// it spins instantly; the badge/colour/which-state come from the templated host block. 2-across
-// (columns 6) so names don't truncate on a phone.
+// #71 Motion — radar HUD: still cyan ring reading "CLEAR" while the room is empty; on motion
+// it turns red, sweeps the radar and fires a "DETECTED" sonar shockwave. Inverted vs upstream
+// (which swept while idle) so motion on the card only ever means motion in the room.
+// Status badge + bottom scan bar throughout. The ring and both keyframes are STATIC (shadow
+// block) so they exist instantly; the badge/colour/which-state come from the templated host
+// block. 2-across (columns 6) so names don't truncate on a phone.
 const animMotion = (entity, name, { icon = "mdi:motion-sensor", columns = 6, rows = 2 } = {}) => ({
   type: "custom:mushroom-entity-card",
   entity, name, icon,
@@ -408,7 +410,7 @@ const animMotion = (entity, name, { icon = "mdi:motion-sensor", columns = 6, row
         {% set color_detected = '255, 50, 50' %}
         {% set color_scanning = '0, 200, 255' %}
         {% set text_detected = 'DETECTED' %}
-        {% set text_scanning = 'SCANNING' %}
+        {% set text_scanning = 'CLEAR' %}
         {% set is_active = states(config.entity) == active_state %}
         {% if is_active %}
            {% set color = color_detected %}
@@ -422,8 +424,11 @@ const animMotion = (entity, name, { icon = "mdi:motion-sensor", columns = 6, row
         --sonar-color: {{ color }};
         --sonar-bg: {{ bg_image }};
         --badge-text: "{{ badge }}";
-        --anim-sweep: {{ 'block' if not is_active else 'none' }};
+        {# §6 idle is quiet: an empty room does NOT sweep. Both the radar sweep and the sonar
+           shockwave belong to the DETECTED state — motion on the card means motion in the room. #}
+        --anim-sweep: {{ 'block' if is_active else 'none' }};
         --anim-pulse: {{ 'block' if is_active else 'none' }};
+        --sonar-op: {{ '1' if is_active else '0.7' }};
         background-image: var(--sonar-bg) !important;
         transition: background-image 0.5s ease;
         border-radius: 12px;
@@ -431,7 +436,7 @@ const animMotion = (entity, name, { icon = "mdi:motion-sensor", columns = 6, row
         overflow: hidden;
       }
       ha-card::before {
-        content: var(--badge-text, "SCANNING");
+        content: var(--badge-text, "CLEAR");
         position: absolute;
         top: 10px; right: 10px;
         font-size: 10px; font-weight: 900; letter-spacing: 1px;
@@ -450,10 +455,11 @@ const animMotion = (entity, name, { icon = "mdi:motion-sensor", columns = 6, row
         opacity: 0.7;
         transition: all 0.5s ease;
       }`,
-    // STATIC: the ring + both animations exist immediately; defaults show the SCANNING sweep in
-    // cyan until the template confirms idle/active.
+    // STATIC: the ring + both animations exist immediately; defaults are the QUIET (clear) look
+    // in cyan — the ring just sits there until the template confirms motion.
     "mushroom-shape-icon$": `
       .shape {
+        opacity: var(--sonar-op, 0.7);
         --shape-color: var(--sonar-color, 0, 200, 255);
         --icon-size: var(--custom-icon-size, 65px) !important;
         width: var(--icon-size) !important;
@@ -469,7 +475,7 @@ const animMotion = (entity, name, { icon = "mdi:motion-sensor", columns = 6, row
       }
       .shape::before {
         content: '';
-        display: var(--anim-sweep, block);
+        display: var(--anim-sweep, none);
         position: absolute; inset: -2px; border-radius: 50%;
         background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, rgba(var(--shape-color), 0.1) 280deg, rgba(var(--shape-color), 1) 360deg);
         animation: radar-spin 2.5s linear infinite;
@@ -555,12 +561,14 @@ const animClimate = (entity, name) => ({
   tap_action: { action: "toggle" },
   hold_action: { action: "more-info" },
   card_mod: { style: {
-    // STATIC: the pulse runs instantly with a neutral grey; the templated host block recolours
-    // it to the temperature and tunes speed/opacity.
+    // STATIC: a still, temperature-tinted glow is the base state; the pulse only exists while
+    // the zone is actually calling for heat/cool (§6 idle is quiet — a satisfied radiator is
+    // not "doing" anything, so it doesn't move).
     "mushroom-shape-icon$": `
       .shape {
         opacity: var(--ig-op, 1);
-        animation: temp-pulse var(--ig-dur, 2.6s) ease-in-out infinite;
+        box-shadow: 0 0 8px 3px rgba(var(--temp-rgb, 120, 120, 120), 0.45);
+        animation: var(--shape-animation, none);
       }
       @keyframes temp-pulse {
         0%   { box-shadow: 0 0 6px 2px rgba(var(--temp-rgb, 120, 120, 120), 0.35); }
@@ -571,7 +579,16 @@ const animClimate = (entity, name) => ({
       ha-card {
         clip-path: inset(0 0 0 0 round var(--ha-card-border-radius, 12px));${TEMP_RGB}
         --temp-rgb: {{ c }};
-        {% if is_state(config.entity,'off') %}--ig-dur: 4s; --ig-op: 0.6;{% else %}--ig-dur: 2.6s; --ig-op: 1;{% endif %}
+        {% set act = state_attr(config.entity, 'hvac_action') %}
+        {% if is_state(config.entity, 'off') %}
+          --shape-animation: none; --ig-op: 0.6;
+        {% elif act in ['heating', 'cooling', 'drying'] %}
+          {# actually working — this is the one state that earns motion #}
+          --shape-animation: temp-pulse 2.6s ease-in-out infinite; --ig-op: 1;
+        {% else %}
+          {# on, but idle/satisfied: still, full colour #}
+          --shape-animation: none; --ig-op: 0.92;
+        {% endif %}
       }`,
   } },
   grid_options: { columns: 6, rows: 1 },
@@ -588,9 +605,10 @@ const COMFORT_RAMP = `
         {% if t < -900 %}{% set rgb = '86, 92, 100' %}{% set dur = '' %}{% set op = '0.4' %}
         {% elif t < 15 %}{% set rgb = '122, 184, 255' %}{% set dur = '2.4s' %}{% set op = '1' %}
         {% elif t < 18 %}{% set rgb = '166, 211, 228' %}{% set dur = '3.2s' %}{% set op = '1' %}
-        {% elif t < 20 %}{% set rgb = '207, 218, 219' %}{% set dur = '4s' %}{% set op = '0.9' %}
-        {% elif t < 23 %}{% set rgb = '234, 238, 242' %}{% set dur = '4.6s' %}{% set op = '0.9' %}
-        {% elif t < 24.5 %}{% set rgb = '240, 196, 133' %}{% set dur = '3.2s' %}{% set op = '1' %}
+        {# 18–24.5 °C is the comfort band: nothing is wrong, so nothing moves (§6 idle is quiet) #}
+        {% elif t < 20 %}{% set rgb = '207, 218, 219' %}{% set dur = '' %}{% set op = '0.9' %}
+        {% elif t < 23 %}{% set rgb = '234, 238, 242' %}{% set dur = '' %}{% set op = '0.9' %}
+        {% elif t < 24.5 %}{% set rgb = '240, 196, 133' %}{% set dur = '' %}{% set op = '1' %}
         {% elif t < 26.5 %}{% set rgb = '247, 155, 92' %}{% set dur = '2.4s' %}{% set op = '1' %}
         {% else %}{% set rgb = '255, 122, 104' %}{% set dur = '1.8s' %}{% set op = '1' %}{% endif %}`;
 const animTemp = (entity, name = "Temperature") => ({
@@ -612,7 +630,10 @@ const animTemp = (entity, name = "Temperature") => ({
         transform-origin: 50% 55%;
         --icon-color: rgba(var(--temp-rgb, 150, 160, 170), 1) !important;
         opacity: var(--ig-op, 0.9);
-        animation: var(--shape-animation, comfort-breathe 4s ease-in-out infinite);
+        /* still by default — a room in the comfort band just sits there with a soft tinted glow;
+           the breath only starts when the ramp says the temperature is worth looking at */
+        box-shadow: 0 0 10px 3px rgba(var(--temp-rgb, 150, 160, 170), 0.4);
+        animation: var(--shape-animation, none);
       }
       @keyframes comfort-breathe {
         0%   { transform: scale(0.97); box-shadow: 0 0 8px 2px rgba(var(--temp-rgb, 150, 160, 170), 0.35); }
@@ -650,7 +671,9 @@ const animHum = (entity, name = "Humidity") => ({
         transform-origin: 50% 50%;
         --icon-color: rgba(var(--hum-rgb, 150, 160, 170), 1) !important;
         opacity: var(--ig-op, 0.9);
-        animation: var(--shape-animation, hum-bob 4s ease-in-out infinite);
+        /* still by default (see animTemp) — the healthy 40–70 % band gets a static glow */
+        box-shadow: 0 0 10px 3px rgba(var(--hum-rgb, 150, 160, 170), 0.4);
+        animation: var(--shape-animation, none);
       }
       @keyframes hum-bob {
         0%   { transform: translateY(0);    box-shadow: 0 0 8px 2px rgba(var(--hum-rgb, 150, 160, 170), 0.35); }
@@ -662,8 +685,9 @@ const animHum = (entity, name = "Humidity") => ({
         {% set h = states(config.entity) | float(-999) %}
         {% if h < -900 %}{% set rgb = '86, 92, 100' %}{% set dur = '' %}{% set op = '0.4' %}
         {% elif h < 40 %}{% set rgb = '240, 196, 133' %}{% set dur = '3s' %}{% set op = '1' %}
-        {% elif h < 60 %}{% set rgb = '141, 166, 195' %}{% set dur = '4.6s' %}{% set op = '0.9' %}
-        {% elif h < 70 %}{% set rgb = '79, 195, 247' %}{% set dur = '3s' %}{% set op = '1' %}
+        {# 40–70 % is the healthy band: still, just colour (§6 idle is quiet) #}
+        {% elif h < 60 %}{% set rgb = '141, 166, 195' %}{% set dur = '' %}{% set op = '0.9' %}
+        {% elif h < 70 %}{% set rgb = '79, 195, 247' %}{% set dur = '' %}{% set op = '1' %}
         {% else %}{% set rgb = '41, 121, 255' %}{% set dur = '2.2s' %}{% set op = '1' %}{% endif %}
         --hum-rgb: {{ rgb }};
         --shape-animation: {{ 'none' if dur == '' else 'hum-bob ' ~ dur ~ ' ease-in-out infinite' }};

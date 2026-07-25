@@ -79,13 +79,14 @@ there the draw is the only signal available.
 | **Animated Air Purifier** | `custom:anim-air-purifier-card` | `icon` `color` `glow` `speed` `active` | Motor hum breath with clean-air rings rippling out while it runs |
 | **Animated Air Quality** | `custom:anim-air-quality-card` | `variant` `icon` `graph` `graph_hours` | AQI tile banded good→hazardous, glow + halo escalating with severity; optional 24 h sparkline |
 | **Animated Alarm** | `custom:anim-alarm-card` | `variant` `icon` `color` `glow` `speed` `active` `arm_states` | Alarm panel shield — calm green disarmed, red radar + sonar armed, orange arming, strobing triggered |
-| **Animated Alarmo Keypad** | `custom:anim-alarmo-card` | `keep_keypad_visible` `disarmed_glow` `armed_glow` `triggered_glow` `pending_glow` | Alarmo keypad card with a state-coloured inner glow — breathing disarmed, pulsing armed, strobing triggered |
+| **Animated Alarmo Keypad** | `custom:anim-alarmo-card` | `keep_keypad_visible` `disarmed_glow` `armed_glow` `triggered_glow` `pending_glow` | Alarmo keypad card with a state-coloured inner glow — still when disarmed, pulsing when armed or arming, strobing when triggered |
 | **Animated Awtrix Clock (device)** | `custom:anim-awtrix-clock-card` | `icon` `color` `speed` `active` `power_entity` `power_above` | LED-matrix look — pixel grid, scrolling rainbow marquee and scanline glare (Awtrix/Ulanzi) |
 | **Animated Badge / Button** | `custom:anim-badge-card` | `icon` `content` `icon_color` `active_states` `below` `above` `animation` `always_animate` `speed` `active_bg` `active_fg` `active_border` `active_opacity` `inactive_bg` `inactive_fg` `inactive_border` `inactive_opacity` `overlay` `position` `offset_y` `offset_x` `icon_size` `text_size` `radius` `border_width` | Configurable chip pill — colours, icon and animation flip on a state match or threshold |
 | **Animated Barometer** | `custom:anim-pressure-card` | `icon` `graph` `graph_hours` | Barometric-pressure tile — storm blue through settled green to a high-pressure shimmer |
 | **Animated Battery** | `custom:anim-battery-card` | `variant` `charging_entity` `low` `medium` `target_soc` `icon` `color_low` `color_medium` `color_high` `color_charging` | Battery level — liquid disc, card-wide fill or striped bar; charging is its own colour |
 | **Animated Charger** | `custom:anim-charger-card` | `icon` `color` `glow` `speed` `power_entity` `active` | Plug that swells, halos and throws electric arcs while charging — pulse rate tracks the draw |
 | **Animated Climate Tile** | `custom:anim-climate-card` | — | Compact zone tile — icon coloured/glowing by room temp, tap toggles the zone |
+| **Animated Clock** | `custom:anim-clock-card` | `variant` `glow` `twelve_hour` `hide_date` | Time in the house card language — an analog dial drawn in the icon disc (or a quiet digital readout). No looping animation: the hands only move when the minute does |
 | **Animated CO₂** | `custom:anim-co2-card` | `icon` `graph` `graph_hours` | ppm tile — fresh green breath through to a red shimmer once the room needs airing |
 | **Animated Contact** | `custom:anim-contact-card` | `icon` `open_icon` `color` `glow` | Door/window sensor — calm when shut, pulsing red alert while open |
 | **Animated Curtain** | `custom:anim-curtain-card` | `icon` `fabric` `fabric_shadow` `pane_open` `pane_shut` `window_width` `height` | Draws the window — fabric panels slide with position, glass fades day-blue to night-dark |
@@ -141,7 +142,7 @@ there the draw is the only signal available.
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `tap_navigate` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
-Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 65 designs above.
+Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 66 designs above.
 
 <details><summary><b>Animated 3D Printer</b> — notes</summary>
 
@@ -182,6 +183,14 @@ Bands are in **mbar / hPa** (990 / 1005 / 1020 / 1035). A sensor reporting inHg 
 <details><summary><b>Animated Battery</b> — notes</summary>
 
 Works with a numeric battery-% sensor OR one whose state is the text low/medium/high (mapped to 20/50/100 as upstream does) — no separate card for the banded case. An unavailable/unknown sensor is drawn empty, grey and still, never as a plausible 0 %.
+
+</details>
+
+<details><summary><b>Animated Clock</b> — notes</summary>
+
+No entity required — the card renders the current time and re-renders on every minute
+boundary. An optional entity makes tap open its more-info dialog. Deliberately the quietest card
+in the set: nothing loops, the hands just ease to their new angle each minute.
 
 </details>
 
