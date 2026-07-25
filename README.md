@@ -178,6 +178,8 @@ render those cards nearly unreadable rather than merely different. Tested, not a
 | **Animated Switch / Plug** | `custom:anim-switch-card` | `icon` `color` `glow` `active` `power_entity` `hide_power` | Steady glow pulse while on, with the plug's live wattage beside the state |
 | **Animated Temperature** | `custom:anim-temp-card` | — | Breathing thermometer on a calm comfort ramp (20–23 °C reads near-white) |
 | **Animated Temperature (graph)** | `custom:anim-temp-graph-card` | `variant` `graph` `graph_hours` | Banded thermometer with glow + halo layers and a 24 h sparkline bled into the corner |
+| **Animated To-do List (large)** | `custom:anim-todo-card` | `icon` `color` `show_completed` `hide_add` `max_height` | A working to-do/shopping list — tick items off, with a live count badge and a status bar that sweeps while anything is outstanding |
+| **Animated To-do List (small)** | `custom:anim-todo-small-card` | `icon` `color` `show_completed` `hide_add` `max_height` | List tile — how many items are left, sweeping bar while anything is outstanding; tap for the list |
 | **Animated Tumble Dryer** | `custom:anim-dryer-card` | `source` `icon` `power_entity` `switch_entity` `running_entity` `remaining_entity` `door_entity` `percent_entity` `max_minutes` `drying_states` `cooling_states` `done_states` `active_above` `heat_above` | Drum fills and turns — orange steam on heat, blue breeze on cool-down, sparkle when done |
 | **Animated Vacuum** | `custom:anim-vacuum-card` | `icon` `color` `active` | Robot wanders a cleaning path while the vacuum runs |
 | **Animated Vibration** | `custom:anim-vibration-card` | `icon` `color` `glow` `speed` `active` | Icon judders with a shockwave ring while something is vibrating; quiet and dim when still |
@@ -191,7 +193,7 @@ render those cards nearly unreadable rather than merely different. Tested, not a
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `tap_navigate` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
-Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 66 designs above.
+Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 68 designs above.
 
 <details><summary><b>Animated 3D Printer</b> — notes</summary>
 
@@ -403,6 +405,50 @@ The bass ring's swell scales with the player's `volume_level` attribute; players
 <details><summary><b>Animated Temperature (graph)</b> — notes</summary>
 
 The sparkline needs two more HACS frontend cards: **mini-graph-card** and **vertical-stack-in-card**. Turn the graph off and the kind renders as a plain Mushroom + card-mod card.
+
+</details>
+
+<details><summary><b>Animated To-do List (large)</b> — notes</summary>
+
+Works with **any `todo.*` entity** — an Alexa list, HA's own local to-do lists,
+CalDAV, Google Tasks. Bind the list; nothing else to configure.
+
+The list itself is **HA's own `todo-list` card nested inside**, so ticking an item off really
+writes back to the source (and, for an Alexa list, removes it from what the Echo reads back).
+Everything around it is the animation:
+
+- **Empty is quiet** — green, still, a ✓ badge instead of a number.
+- **Outstanding items** light the bottom bar in the accent colour and sweep it slowly.
+- **Just changed** (something added or ticked in the last 5 minutes) speeds the sweep up and
+  makes the icon disc breathe — the "someone put something on the list" beat.
+- **Unavailable** goes grey and completely still.
+
+The count badge is the entity's state; a `todo` entity's state is exactly its number of
+outstanding items. Tap the header for the full list dialog, including completed items.
+
+Needs **vertical-stack-in-card** (HACS) for the large size, like the other two-part cards here.
+
+</details>
+
+<details><summary><b>Animated To-do List (small)</b> — notes</summary>
+
+Works with **any `todo.*` entity** — an Alexa list, HA's own local to-do lists,
+CalDAV, Google Tasks. Bind the list; nothing else to configure.
+
+The list itself is **HA's own `todo-list` card nested inside**, so ticking an item off really
+writes back to the source (and, for an Alexa list, removes it from what the Echo reads back).
+Everything around it is the animation:
+
+- **Empty is quiet** — green, still, a ✓ badge instead of a number.
+- **Outstanding items** light the bottom bar in the accent colour and sweep it slowly.
+- **Just changed** (something added or ticked in the last 5 minutes) speeds the sweep up and
+  makes the icon disc breathe — the "someone put something on the list" beat.
+- **Unavailable** goes grey and completely still.
+
+The count badge is the entity's state; a `todo` entity's state is exactly its number of
+outstanding items. Tap the header for the full list dialog, including completed items.
+
+Needs **vertical-stack-in-card** (HACS) for the large size, like the other two-part cards here.
 
 </details>
 

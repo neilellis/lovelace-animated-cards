@@ -150,6 +150,9 @@ Animated:
   mush-rgb-state-climate-heat: 255, 112, 67
   mush-rgb-state-climate-cool: 79, 195, 247
   mush-rgb-state-climate-off: 89, 99, 111
+  mush-rgb-state-cover-open: 0, 200, 255
+  mush-rgb-state-cover-closed: 108, 137, 168
+  mush-rgb-state-number: 0, 200, 255
   # Kept for any custom card that reads the plain names (HA core itself reads only ten
   # `--rgb-*` tokens, and derives those automatically from the hex keys above).
   rgb-red: 244, 67, 54
