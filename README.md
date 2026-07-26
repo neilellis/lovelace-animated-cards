@@ -133,6 +133,8 @@ render those cards nearly unreadable rather than merely different. Tested, not a
 | **Animated Badge / Button** | `custom:anim-badge-card` | `icon` `content` `icon_color` `active_states` `below` `above` `animation` `always_animate` `speed` `active_bg` `active_fg` `active_border` `active_opacity` `inactive_bg` `inactive_fg` `inactive_border` `inactive_opacity` `overlay` `position` `offset_y` `offset_x` `icon_size` `text_size` `radius` `border_width` | Configurable chip pill — colours, icon and animation flip on a state match or threshold |
 | **Animated Barometer** | `custom:anim-pressure-card` | `icon` `graph` `graph_hours` | Barometric-pressure tile — storm blue through settled green to a high-pressure shimmer |
 | **Animated Battery** | `custom:anim-battery-card` | `variant` `charging_entity` `low` `medium` `target_soc` `icon` `color_low` `color_medium` `color_high` `color_charging` | Battery level — liquid disc, card-wide fill or striped bar; charging is its own colour |
+| **Animated Battery List (large)** | `custom:anim-battery-list-card` | `group_by` `threshold` `include_rechargeable` `name` `icon` `color` `max_height` | Every battery that needs replacing, grouped by type (or room), with what to buy — from the Battery Notes integration, no entity needed |
+| **Animated Battery List (small)** | `custom:anim-battery-list-small-card` | `group_by` `threshold` `include_rechargeable` `name` `icon` `color` | Battery shopping tile — how many need replacing; tap-free glance, no list |
 | **Animated Charger** | `custom:anim-charger-card` | `icon` `color` `glow` `speed` `power_entity` `active` | Plug that swells, halos and throws electric arcs while charging — pulse rate tracks the draw |
 | **Animated Climate Tile** | `custom:anim-climate-card` | — | Compact zone tile — icon coloured/glowing by room temp, tap toggles the zone |
 | **Animated Clock** | `custom:anim-clock-card` | `variant` `glow` `twelve_hour` `hide_date` | Time in the house card language — an analog dial drawn in the icon disc (or a quiet digital readout). No looping animation: the hands only move when the minute does |
@@ -193,7 +195,7 @@ render those cards nearly unreadable rather than merely different. Tested, not a
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `tap_navigate` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
-Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 68 designs above.
+Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 70 designs above.
 
 <details><summary><b>Animated 3D Printer</b> — notes</summary>
 
@@ -234,6 +236,68 @@ Bands are in **mbar / hPa** (990 / 1005 / 1020 / 1035). A sensor reporting inHg 
 <details><summary><b>Animated Battery</b> — notes</summary>
 
 Works with a numeric battery-% sensor OR one whose state is the text low/medium/high (mapped to 20/50/100 as upstream does) — no separate card for the banded case. An unavailable/unknown sensor is drawn empty, grey and still, never as a plausible 0 %.
+
+</details>
+
+<details><summary><b>Animated Battery List (large)</b> — notes</summary>
+
+**No entity to bind** — the card finds every device tracked by the
+[Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes) integration by itself
+(`integration_entities('battery_notes')`) and lists the ones whose battery needs replacing.
+
+- **Grouped by battery type by default** — "CR2450 · need ×3" — because the usual question is
+  what to buy. `group_by: area` regroups by room for the round of actually swapping them.
+- **Lists anything at or below 25 %** (`threshold`), *or* whatever Battery Notes
+  itself flags as low. Battery Notes' own default is 10 %, which is roughly the point where a
+  remote has already stopped working — too late to be a shopping list. Both tests apply, so a
+  per-device threshold set higher than 25 still counts.
+- **Rechargeables are left out.** A phone or an iPad has no battery to buy; Battery Notes types
+  those `Rechargeable`. `include_rechargeable` puts them back.
+- **A level-less device is not a flat battery.** Plenty here (every Tado TRV) never report a
+  percentage; they appear only if Battery Notes actually flags them, never on the threshold alone.
+- Rows show the device, where it is (or the type, when grouped by room), and the level % when the
+  device reports one — most urgent first, and devices with no area group under "Elsewhere", last.
+
+Idle is quiet: with nothing to replace the card is a single green line — "All batteries OK", a ✓
+badge, the body hidden entirely and no animation at all. Anything low turns it amber, sweeps the
+bottom bar and breathes the icon disc. If the integration isn't installed the card says so in grey
+rather than erroring.
+
+Rows are read-only on purpose: pressing "battery replaced" resets the tracking date, so it belongs
+in the device's own dialog, not one tap away from a list you're reading.
+
+Needs **vertical-stack-in-card** (HACS) for the large size, like the other two-part cards here.
+
+</details>
+
+<details><summary><b>Animated Battery List (small)</b> — notes</summary>
+
+**No entity to bind** — the card finds every device tracked by the
+[Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes) integration by itself
+(`integration_entities('battery_notes')`) and lists the ones whose battery needs replacing.
+
+- **Grouped by battery type by default** — "CR2450 · need ×3" — because the usual question is
+  what to buy. `group_by: area` regroups by room for the round of actually swapping them.
+- **Lists anything at or below 25 %** (`threshold`), *or* whatever Battery Notes
+  itself flags as low. Battery Notes' own default is 10 %, which is roughly the point where a
+  remote has already stopped working — too late to be a shopping list. Both tests apply, so a
+  per-device threshold set higher than 25 still counts.
+- **Rechargeables are left out.** A phone or an iPad has no battery to buy; Battery Notes types
+  those `Rechargeable`. `include_rechargeable` puts them back.
+- **A level-less device is not a flat battery.** Plenty here (every Tado TRV) never report a
+  percentage; they appear only if Battery Notes actually flags them, never on the threshold alone.
+- Rows show the device, where it is (or the type, when grouped by room), and the level % when the
+  device reports one — most urgent first, and devices with no area group under "Elsewhere", last.
+
+Idle is quiet: with nothing to replace the card is a single green line — "All batteries OK", a ✓
+badge, the body hidden entirely and no animation at all. Anything low turns it amber, sweeps the
+bottom bar and breathes the icon disc. If the integration isn't installed the card says so in grey
+rather than erroring.
+
+Rows are read-only on purpose: pressing "battery replaced" resets the tracking date, so it belongs
+in the device's own dialog, not one tap away from a list you're reading.
+
+Needs **vertical-stack-in-card** (HACS) for the large size, like the other two-part cards here.
 
 </details>
 
