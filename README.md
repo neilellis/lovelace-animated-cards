@@ -155,7 +155,7 @@ render those cards nearly unreadable rather than merely different. Tested, not a
 | **Animated Humidity** | `custom:anim-humidity-card` | — | Bobbing droplet, colour-banded — amber parched, slate healthy, blue saturated |
 | **Animated Humidity (graph)** | `custom:anim-humidity-graph-card` | `graph` `graph_hours` | Three-band droplet with glow + halo layers and a 24 h sparkline bled into the corner |
 | **Animated Illuminance** | `custom:anim-lux-card` | `icon` `graph` `graph_hours` | Light-level tile ramping night-blue → dusk purple → warm → a near-white sun shimmer |
-| **Animated Internet Speed** | `custom:anim-speedtest-card` | `upload_entity` `ping_entity` `max_download` | SpeedTest panel — a live gauge with data-rain falling at your measured download rate (and rising for upload), heartbeat paced by ping |
+| **Animated Internet Speed** | `custom:anim-speedtest-card` | `upload_entity` `ping_entity` `max_download` `hide_graph` `graph_hours` | SpeedTest panel — a live gauge with data-rain falling at your measured download rate (and rising for upload), heartbeat paced by ping |
 | **Animated Kettle** | `custom:anim-kettle-card` | `icon` `color` `glow` `speed` `active` | Heat glow swells and steam drifts off the spout while it boils |
 | **Animated Lamp** | `custom:anim-lamp-card` | `active` `controls_always_open` | Mushroom light card (brightness/colour controls) pulsing in the light's own colour |
 | **Animated LED Strip** | `custom:anim-led-strip-card` | `icon` `color` `active` | Vertical tile glowing in the strip's own colour while on |
@@ -412,6 +412,10 @@ Bind `sensor.speedtest_download`; `_upload` and `_ping` are derived from its id.
 The gauge fills to download ÷ max_download and colour-bands red/amber/green; the data-rain's
 fall rate tracks download, the rising stream tracks upload, and the gauge's heartbeat is paced
 by ping. The second line reads "▼ 50.4 ▲ 36.3 Mbps · 45 ms · tested 12 min ago".
+A sparkline of the last 24 h runs along the bottom — cyan download over amber upload, the same
+two colours as the rain — so a dropout or a slow evening reads at a glance instead of only the
+one number the gauge is showing. It needs two more HACS frontend cards, **mini-graph-card** and
+**vertical-stack-in-card**; `hide_graph` renders the plain Mushroom + card-mod card instead.
 
 </details>
 

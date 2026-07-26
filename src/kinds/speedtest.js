@@ -19,7 +19,10 @@
 const stGauge = (root, size) => `
       ${root} {
         ${size}
-        border-radius: 9999px;
+        /* !important, exactly like the sizes above: the tile's own radius arrives via
+           adoptedStyleSheets and wins the tie, which rendered the gauge as a rounded SQUARE
+           with the arc spilling into the corners (DESIGN.md #10's note, seen on the bench) */
+        border-radius: 9999px !important;
         position: relative;
         background:
           radial-gradient(circle at 50% 50%, #10151a 0 57%, transparent 58%),
@@ -58,23 +61,35 @@ registerKind("speedtest", {
     { name: "upload_entity", selector: { entity: { domain: "sensor" } } },
     { name: "ping_entity", selector: { entity: { domain: "sensor" } } },
     { name: "max_download", selector: { number: { min: 1, step: 1, mode: "box", unit_of_measurement: "Mbps" } } },
+    { name: "hide_graph", selector: { boolean: {} } },
+    { name: "graph_hours", selector: { number: { min: 1, max: 168, step: 1, mode: "box", unit_of_measurement: "h" } } },
   ],
   help: {
     entity: "The DOWNLOAD speed sensor (Mbps) — upload/ping are found by swapping 'download' in its id, or set below",
     upload_entity: "Upload speed sensor (Mbps)",
     ping_entity: "Ping sensor (ms)",
     max_download: "Download speed that reads as a full gauge (default 100)",
+    hide_graph: "Drop the recent-speed sparkline and render the gauge alone",
+    graph_hours: "History window for the sparkline (default 24)",
   },
   docs: `Bind \`sensor.speedtest_download\`; \`_upload\` and \`_ping\` are derived from its id.
 The gauge fills to download ÷ max_download and colour-bands red/amber/green; the data-rain's
 fall rate tracks download, the rising stream tracks upload, and the gauge's heartbeat is paced
-by ping. The second line reads "▼ 50.4 ▲ 36.3 Mbps · 45 ms · tested 12 min ago".`,
+by ping. The second line reads "▼ 50.4 ▲ 36.3 Mbps · 45 ms · tested 12 min ago".
+A sparkline of the last 24 h runs along the bottom — cyan download over amber upload, the same
+two colours as the rain — so a dropout or a slow evening reads at a glance instead of only the
+one number the gauge is showing. It needs two more HACS frontend cards, **mini-graph-card** and
+**vertical-stack-in-card**; \`hide_graph\` renders the plain Mushroom + card-mod card instead.`,
   make: (c) => {
     const dl = c.entity;
     const up = c.upload_entity || dl.replace("download", "upload");
     const ping = c.ping_entity || dl.replace("download", "ping");
     const maxDl = c.max_download > 0 ? c.max_download : 100;
-    return {
+    const graph = !c.hide_graph;
+    // The sparkline is absolutely positioned, so it adds no height of its own — reserve the band
+    // on the tile instead, or the line lands on the "▼ … ▲ …" readout. A sidebar/masonry view
+    // ignores grid_options and sizes to content, so padding (not `rows`) is what has to buy it.
+    const card = {
       type: "custom:mushroom-template-card",
       entity: dl,
       primary: c.name || "Internet Speed",
@@ -128,7 +143,7 @@ by ping. The second line reads "▼ 50.4 ▲ 36.3 Mbps · 45 ms · tested 12 min
           position: relative;
           overflow: hidden;
           clip-path: inset(0 0 0 0 round var(--ha-card-border-radius, 12px));
-          --card-primary-font-size: 1.15rem;
+          --card-primary-font-size: 1.15rem;${graph ? "\n          padding-bottom: 34px;" : ""}
         }
         /* keep the reading above the rain — and inert, so taps reach the tile's clickable
            background layer instead of dying on the raised content (see DESIGN.md #11) */
@@ -174,7 +189,27 @@ by ping. The second line reads "▼ 50.4 ▲ 36.3 Mbps · 45 ms · tested 12 min
         @keyframes st-fall { from { transform: translateY(0); } to { transform: translateY(50%); } }
         @keyframes st-rise { from { transform: translateY(0); } to { transform: translateY(-50%); } }`,
       } },
-      grid_options: { columns: 12, rows: 2 },
+      grid_options: { columns: 12, rows: graph ? 3 : 2 },
     };
+    if (!graph) return card;
+    // Download over upload, in the rain's own two colours, as a full-width strip along the
+    // bottom — NOT the corner bleed the temp/humidity kinds use: a fixed 400px corner graph
+    // hangs out of a sidebar column, and the whole point of this card is the measurement, so
+    // the history belongs across it rather than tucked behind the text. Masked to fade upward
+    // so the line dies out before it reaches the readout.
+    return withMiniGraph(card, [
+      { entity: dl, color: "rgb(0, 190, 255)" },
+      { entity: up, color: "rgb(255, 179, 0)" },
+    ], {
+      hours: c.graph_hours,
+      pointsPerHour: 1,     // the SpeedTest integration measures ~hourly; asking for more just interpolates
+      fill: "fade",         // two solid fills stack into an olive smear — compared on the bench
+      height: 56,
+      lineWidth: 2.5,
+      opacity: "85%",
+      width: "100%",
+      mask: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 100%)",
+      place: "margin: 0; position: absolute; left: 0; right: 0; bottom: 0;",
+    });
   },
 });

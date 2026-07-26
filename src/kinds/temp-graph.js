@@ -15,21 +15,31 @@
 // then a second (nested) vertical-stack-in-card that is absolutely positioned over the
 // bottom-right corner and holds a chrome-less mini-graph-card, radially masked so the line
 // fades into the card instead of ending at a hard edge.
+//
+// `entity` is one entity id, or an ARRAY of ids / mini-graph entity objects when a card plots
+// more than one series (the speedtest kind draws download and upload together). `opts.place`
+// and `opts.mask` swap the corner bleed for another placement — speedtest anchors a full-width
+// strip along the bottom, because a fixed 400px corner graph spills out of a sidebar column.
 function withMiniGraph(card, entity, opts = {}) {
   const graph = prune({
     type: "custom:mini-graph-card",
-    entities: [entity],
+    entities: [].concat(entity),
     hours_to_show: opts.hours || 24,
-    line_width: 5,
+    points_per_hour: opts.pointsPerHour,
+    height: opts.height,
+    line_width: opts.lineWidth || 5,
     line_color: opts.lineColor,
     color_thresholds: opts.thresholds,
-    show: { name: false, icon: false, state: false, labels: false, legend: false },
+    // `fill` is left unset (mini-graph's solid default) unless a kind asks: two solid fills
+    // stacked read as one olive smear, which is what "fade" fixes for the multi-series cards.
+    show: prune({ name: false, icon: false, state: false, labels: false, legend: false, fill: opts.fill }),
     card_mod: { style: `
       ha-card {
         background: none; box-shadow: none; border: none;
         opacity: ${opts.opacity || "50%"};
         width: ${opts.width || "400px"};
-        mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 90%);
+        pointer-events: none;
+        mask-image: ${opts.mask || "radial-gradient(ellipse at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 90%)"};
       }` },
   });
   return {
@@ -42,8 +52,10 @@ function withMiniGraph(card, entity, opts = {}) {
         card_mod: { style: { ".": `
           ha-card {
             background: none; box-shadow: none; border: none;
-            margin: 8px 12px;
-            position: absolute; bottom: -10px; right: -10px;
+            ${opts.place || "margin: 8px 12px; position: absolute; bottom: -10px; right: -10px;"}
+            /* DESIGN.md #11 — decoration laid over a card must never become a dead hit target,
+               or the tap_action underneath it silently stops firing */
+            pointer-events: none;
           }
           ha-card::before, ha-card::after { display: none !important; }` } },
       },
