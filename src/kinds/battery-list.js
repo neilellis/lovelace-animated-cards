@@ -196,7 +196,7 @@ const BL_WRAP = `
 // `summary: false` gives the tile a count phrase instead of the full shopping list — the small
 // tile is 145px wide (measured), and 273px of "2× AAA · 1× CR2 · …" cannot be made to fit at any
 // font size worth reading. It says how many, and names the type only when there's just one.
-const blHeader = (c, rgb, rech, thr, { badge = true, size = 46, summary = true } = {}) => ({
+const blHeader = (c, rgb, rech, thr, { badge = true, size = 46, summary = true, tap = null } = {}) => ({
   type: "custom:mushroom-template-card",
   primary: c.name || "Batteries",
   secondary: blJ(rech, thr, `{% if dead %}No Battery Notes devices` +
@@ -212,7 +212,7 @@ const blHeader = (c, rgb, rech, thr, { badge = true, size = 46, summary = true }
   // a CSS colour rather than a Mushroom name, so a custom `color` reaches the icon too
   icon_color: blJ(rech, thr, `{% if dead %}disabled` +
     `{% elif nlow == 0 %}rgb(${BL_OK_RGB}){% else %}rgb(${rgb}){% endif %}`),
-  tap_action: { action: "none" },
+  tap_action: tap || { action: "none" },
   card_mod: { style: {
     "mushroom-shape-icon$": blDisc(".shape", `--icon-size: ${size}px !important; width: var(--icon-size) !important; height: var(--icon-size) !important;`),
     "ha-tile-icon$": blDisc(".container", `width: ${size}px !important; height: ${size}px !important;`),
@@ -255,12 +255,18 @@ const blContent = (rech, thr, byArea) => {
   const heading = byArea
     ? `###### {{ (rs | first).area }}`
     : `###### {{ (rs | first).type }} · need ×{{ rs | map(attribute='qty') | sum }}`;
+  // The empty line matters only in the pop-up (the inline body hides itself when there's nothing
+  // to buy, so its content is never seen) — but a Bubble sheet with a blank interior looks broken.
   return `${blScan(rech, thr)}
+{%- if nlow == 0 -%}
+{{ 'No Battery Notes devices' if dead else 'All batteries OK' }}
+{%- else -%}
 {%- for k, rs in lows | groupby('${key}') %}
 ${heading}
 {% for r in rs %}${blRow(byArea)}
 {% endfor %}
-{%- endfor -%}`;
+{%- endfor -%}
+{%- endif -%}`;
 };
 
 // ⚠️ MEASURED, not guessed (2026-07-26): the rendered markdown lives in **ha-markdown's SHADOW
@@ -303,27 +309,58 @@ const BL_MARKDOWN = `
       li strong { color: #dbe3ec !important; font-weight: 600 !important; }
       p { margin: 0 !important; }`;
 
-const blBodyStyle = (rech, thr, maxH) => `
-      ha-card {${blScan(rech, thr)}${BL_FLAT}
-        padding: 0 4px 2px !important;
-        /* nothing to buy → no empty shell, no padding, no hole (repo trap #2: display:none needs
+// `--bl-rgb` is set here as well as on the wrapper: custom properties inherit down (including
+// into shadow roots), which is how the heading colour reaches the markdown — but inside a Bubble
+// pop-up there IS no wrapper, so a custom `color` would silently fall back to amber without this.
+const blBodyStyle = (rech, thr, rgb, maxH, popup) => `
+      ha-card {${blScan(rech, thr)}${blVars(rgb)}${BL_FLAT}
+        padding: ${popup ? "2px 2px 6px" : "0 4px 2px"} !important;
+        ${popup ? "" : `/* nothing to buy → no empty shell, no padding, no hole (repo trap #2: display:none needs
            !important, Mushroom/HA adoptedStyleSheets cascade after card-mod's injected style) */
-        display: {{ 'none' if (dead or nlow == 0) else 'block' }} !important;
+        display: {{ 'none' if (dead or nlow == 0) else 'block' }} !important;`}
         /* a pathological list must not turn the card into a page — scroll inside it. No fade mask
            here (unlike the todo card): CSS can't tell whether it actually overflows, and a
            permanent gradient over the last row dims a row that is usually the final one. */
-        max-height: ${maxH}px;
+        max-height: ${popup ? "62vh" : `${maxH}px`};
         overflow-y: auto;
         scrollbar-width: thin;
       }`;
 
-const blBody = (c, rech, thr, byArea) => ({
+const blBody = (c, rgb, rech, thr, byArea, { popup = false } = {}) => ({
   type: "markdown",
   content: blContent(rech, thr, byArea),
   card_mod: { style: {
     "ha-markdown$": BL_MARKDOWN,
-    ".": blBodyStyle(rech, thr, Number(c.max_height) > 0 ? Number(c.max_height) : 420),
+    ".": blBodyStyle(rech, thr, rgb, Number(c.max_height) > 0 ? Number(c.max_height) : 420, popup),
   } },
+});
+
+// ── the pop-up (small tile only) ─────────────────────────────────────────────────────────────
+// The tile can't carry the list — so tapping it opens one. Bubble Card v3.x (installed) shows a
+// `card_type: pop-up` when `location.hash` matches its `hash`, so the tile's tap_action is just a
+// navigate to that hash. The pop-up renders NOTHING inline while the hash is inactive, so it sits
+// harmlessly beside the tile in a plain vertical-stack. Same mechanism as ha-appliances' washer
+// dials; `close_on_click` is off here because nothing inside is tappable — a tap on the list
+// should not dismiss it.
+//
+// Bubble pop-ups render OUTSIDE the view, so they don't inherit a per-view theme (that's what
+// retired the floorplan's pop-ups). Hence `bg_color` and the body styling itself its own colours
+// rather than leaning on the dashboard's theme.
+const blHash = (c) => {
+  const h = String(c.popup_hash || "batteries").trim().replace(/^#+/, "");
+  return `#${h || "batteries"}`;
+};
+
+const blPopup = (c, rgb, rech, thr, byArea) => ({
+  type: "custom:bubble-card",
+  card_type: "pop-up",
+  hash: blHash(c),
+  name: c.name || "Batteries",
+  icon: c.icon || "mdi:battery-alert-variant-outline",
+  show_header: true,
+  close_on_click: false,
+  bg_color: "#12181e",
+  cards: [blBody(c, rgb, rech, thr, byArea, { popup: true })],
 });
 
 // ── registration ────────────────────────────────────────────────────────────────────────────
@@ -372,7 +409,12 @@ rather than erroring.
 Rows are read-only on purpose: pressing "battery replaced" resets the tracking date, so it belongs
 in the device's own dialog, not one tap away from a list you're reading.
 
-Needs **vertical-stack-in-card** (HACS) for the large size, like the other two-part cards here.`;
+**The small tile is tappable** — it opens the whole grouped list as a Bubble Card pop-up sliding up
+from the bottom, because a 6-column tile can show a count but never the list. Give each tile its own
+\`popup_hash\` if you place more than one on a dashboard (they'd otherwise open together).
+
+Needs **vertical-stack-in-card** (HACS) for the large size, and **Bubble Card** (HACS) for the small
+tile's pop-up.`;
 
 registerKind("battery-list", {
   ...BL_COMMON,
@@ -388,7 +430,7 @@ registerKind("battery-list", {
     const byArea = c.group_by === "area";
     return {
       type: "custom:vertical-stack-in-card",
-      cards: [blHeader(c, rgb, rech, thr), blBody(c, rech, thr, byArea)],
+      cards: [blHeader(c, rgb, rech, thr), blBody(c, rgb, rech, thr, byArea)],
       card_mod: { style: { ".": `
       ha-card {${blScan(rech, thr)}${blVars(rgb)}
         --bl-wash: {{ '0.04' if (dead or nlow == 0) else '0.11' }};
@@ -402,8 +444,10 @@ registerKind("battery-list", {
 registerKind("battery-list-small", {
   ...BL_COMMON,
   label: "Animated Battery List (small)",
-  desc: "Battery shopping tile — how many need replacing; tap-free glance, no list",
+  desc: "Battery shopping tile — how many need replacing at a glance; tap it for the full list in a pop-up",
   docs: BL_DOCS,
+  schema: [...BL_COMMON.schema, { name: "popup_hash", selector: { text: {} } }],
+  help: { ...BL_COMMON.help, popup_hash: "URL hash the tap-to-open pop-up uses (default #batteries) — give each tile its own if you place more than one on a dashboard" },
   make: (c) => {
     const rgb = c.color || BL_LOW_RGB;
     const rech = !!c.include_rechargeable;
@@ -412,7 +456,11 @@ registerKind("battery-list-small", {
     // shopping line either: this card measured **145px wide against 273px of text**, so
     // `summary: false` swaps it for a count ("5 to replace"), naming the type only when there
     // is just one ("Need 3× CR2450"). The large card is where the breakdown belongs.
-    const card = blHeader(c, rgb, rech, thr, { badge: false, size: 40, summary: false });
+    const byArea = c.group_by === "area";
+    const tile = blHeader(c, rgb, rech, thr, { badge: false, size: 40, summary: false,
+      // tapping the tile is the only way to see the list from here
+      tap: { action: "navigate", navigation_path: blHash(c) } });
+    const card = tile;
     // the tile IS the whole card here, so it carries the surface itself
     card.card_mod.style["."] = card.card_mod.style["."]
       .replace(BL_FLAT, `
@@ -426,7 +474,12 @@ registerKind("battery-list-small", {
       // NB must match blHeader's badge-less padding exactly, or the tile keeps the 2px inset
       .replace("padding: 2px 4px 2px 4px !important;", "padding: 10px 12px !important;");
     card.card_mod.style["."] += blBar("after");
-    card.grid_options = { columns: 6, rows: "auto" };
-    return card;
+    // a PLAIN vertical-stack, not vertical-stack-in-card: the tile already carries its own
+    // surface, and the pop-up must not be wrapped in (or flattened by) that surface's CSS
+    return {
+      type: "vertical-stack",
+      cards: [card, blPopup(c, rgb, rech, thr, byArea)],
+      grid_options: { columns: 6, rows: "auto" },
+    };
   },
 });

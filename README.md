@@ -134,7 +134,7 @@ render those cards nearly unreadable rather than merely different. Tested, not a
 | **Animated Barometer** | `custom:anim-pressure-card` | `icon` `graph` `graph_hours` | Barometric-pressure tile — storm blue through settled green to a high-pressure shimmer |
 | **Animated Battery** | `custom:anim-battery-card` | `variant` `charging_entity` `low` `medium` `target_soc` `icon` `color_low` `color_medium` `color_high` `color_charging` | Battery level — liquid disc, card-wide fill or striped bar; charging is its own colour |
 | **Animated Battery List (large)** | `custom:anim-battery-list-card` | `group_by` `threshold` `include_rechargeable` `name` `icon` `color` `max_height` | Every battery that needs replacing, grouped by type (or room), with what to buy — from the Battery Notes integration, no entity needed |
-| **Animated Battery List (small)** | `custom:anim-battery-list-small-card` | `group_by` `threshold` `include_rechargeable` `name` `icon` `color` | Battery shopping tile — how many need replacing; tap-free glance, no list |
+| **Animated Battery List (small)** | `custom:anim-battery-list-small-card` | `group_by` `threshold` `include_rechargeable` `name` `icon` `color` `popup_hash` | Battery shopping tile — how many need replacing at a glance; tap it for the full list in a pop-up |
 | **Animated Charger** | `custom:anim-charger-card` | `icon` `color` `glow` `speed` `power_entity` `active` | Plug that swells, halos and throws electric arcs while charging — pulse rate tracks the draw |
 | **Animated Climate Tile** | `custom:anim-climate-card` | — | Compact zone tile — icon coloured/glowing by room temp, tap toggles the zone |
 | **Animated Clock** | `custom:anim-clock-card` | `variant` `glow` `twelve_hour` `hide_date` | Time in the house card language — an analog dial drawn in the icon disc (or a quiet digital readout). No looping animation: the hands only move when the minute does |
@@ -266,7 +266,12 @@ rather than erroring.
 Rows are read-only on purpose: pressing "battery replaced" resets the tracking date, so it belongs
 in the device's own dialog, not one tap away from a list you're reading.
 
-Needs **vertical-stack-in-card** (HACS) for the large size, like the other two-part cards here.
+**The small tile is tappable** — it opens the whole grouped list as a Bubble Card pop-up sliding up
+from the bottom, because a 6-column tile can show a count but never the list. Give each tile its own
+`popup_hash` if you place more than one on a dashboard (they'd otherwise open together).
+
+Needs **vertical-stack-in-card** (HACS) for the large size, and **Bubble Card** (HACS) for the small
+tile's pop-up.
 
 </details>
 
@@ -297,7 +302,12 @@ rather than erroring.
 Rows are read-only on purpose: pressing "battery replaced" resets the tracking date, so it belongs
 in the device's own dialog, not one tap away from a list you're reading.
 
-Needs **vertical-stack-in-card** (HACS) for the large size, like the other two-part cards here.
+**The small tile is tappable** — it opens the whole grouped list as a Bubble Card pop-up sliding up
+from the bottom, because a 6-column tile can show a count but never the list. Give each tile its own
+`popup_hash` if you place more than one on a dashboard (they'd otherwise open together).
+
+Needs **vertical-stack-in-card** (HACS) for the large size, and **Bubble Card** (HACS) for the small
+tile's pop-up.
 
 </details>
 
