@@ -239,33 +239,52 @@ const tdList = (c) => ({
 // is a part of the to-do card, not something to pick from the card picker on its own.
 const TD_COPY_TAG = "anim-todo-copy";
 
-// ⚠️ navigator.clipboard REQUIRES A SECURE CONTEXT. This house's HA is plain http:// on the LAN
-// (http://homeassistant.local:8123), so on the wall tablet and on any phone using the LAN URL
-// navigator.clipboard is UNDEFINED — only the Nabu Casa https URL gets it. The execCommand path
-// below is therefore the one that actually runs at home, not a legacy fallback. Don't "clean it
-// up".
+// ⚠️⚠️ THREE STAGES, AND THE THIRD IS NOT OPTIONAL (2026-07-29, reported from Neil's phone).
+//
+// 1. navigator.clipboard — needs a SECURE CONTEXT. This house's HA is plain http:// on the LAN,
+//    so this only exists over the Nabu Casa https URL.
+// 2. document.execCommand("copy") — the classic fallback. It works in desktop Chrome even on
+//    http (verified), which is exactly why testing there gave a false pass: **iOS WKWebView, i.e.
+//    the HA companion app, refuses it**. That was the actual report — "copy failed on mobile".
+// 3. Give up on the clipboard and SHOW the text, selectable, for a long-press → Copy. Ugly, but
+//    it cannot fail, and a copy button that silently does nothing is worse than an ugly one.
+//
+// So: never gate stage 1 on `isSecureContext` alone (some webviews expose the API anyway), always
+// try/catch down the chain, and never assume stage 2 covers mobile.
 const tdWriteClipboard = async (text) => {
-  if (window.isSecureContext && navigator.clipboard) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  // must live in the LIGHT dom — execCommand("copy") does not see a selection inside a shadow root
-  ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none";
-  document.body.appendChild(ta);
-  // iOS Safari ignores .select() on a plain textarea; it needs a contentEditable range as well
-  ta.contentEditable = "true";
-  ta.readOnly = false;
-  const range = document.createRange();
-  range.selectNodeContents(ta);
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
-  ta.setSelectionRange(0, 999999);
-  let ok = false;
-  try { ok = document.execCommand("copy"); } finally { document.body.removeChild(ta); }
-  if (!ok) throw new Error("execCommand('copy') refused");
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) { /* fall through */ }
+
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    // Must live in the LIGHT dom — execCommand("copy") does not see a selection inside a shadow
+    // root. And it must be REAL-SIZED and on-screen-ish: iOS refuses to select a 1px, opacity-0
+    // element, and a font-size under 16px makes Safari zoom the page.
+    ta.setAttribute("readonly", "");
+    ta.style.cssText =
+      "position:absolute;left:-9999px;top:" + (window.pageYOffset || 0) +
+      "px;width:2em;height:2em;padding:0;border:0;margin:0;font-size:16px;";
+    document.body.appendChild(ta);
+    // iOS Safari ignores .select() on a plain textarea; it needs a contentEditable range too.
+    ta.contentEditable = "true";
+    ta.readOnly = false;
+    const range = document.createRange();
+    range.selectNodeContents(ta);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    ta.setSelectionRange(0, 999999);
+    let ok = false;
+    try { ok = document.execCommand("copy"); } finally { document.body.removeChild(ta); }
+    if (ok) return true;
+  } catch (e) { /* fall through */ }
+
+  return false;   // caller falls back to showing the text
 };
 
 // ⚠️ `typeof customElements` guard, not a bare `customElements.get(...)`: build.mjs regenerates
@@ -317,11 +336,35 @@ if (typeof customElements !== "undefined" && !customElements.get(TD_COPY_TAG)) {
             border-color: rgba(255, 138, 128, 0.40);
           }
           svg { width: 15px; height: 15px; fill: currentColor; flex: none; }
+          /* stage 3: the clipboard refused, so show the text and let them take it by hand */
+          .fb { margin-top: 8px; }
+          .fb[hidden] { display: none; }
+          textarea {
+            width: 100%; box-sizing: border-box;
+            /* 16px or iOS zooms the page when it gets focus */
+            font: 400 16px/1.45 var(--ha-font-family-body, inherit);
+            color: #e8eef6;
+            background: rgba(255, 255, 255, 0.045);
+            border: 1px solid rgba(var(--td-rgb, ${TD_DEFAULT_RGB}), 0.28);
+            border-radius: 12px;
+            padding: 10px 12px;
+            resize: vertical;
+            -webkit-user-select: text; user-select: text;
+          }
+          .hint {
+            margin: 6px 2px 0;
+            font-size: 0.72rem; line-height: 1.35;
+            color: #9aa6b5;
+          }
         </style>
         <button type="button">
           <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
           <span>Copy list as text</span>
-        </button>`;
+        </button>
+        <div class="fb" hidden>
+          <textarea readonly rows="6"></textarea>
+          <div class="hint">Your browser wouldn't let the page copy for you. Long-press the text → <b>Select All</b> → <b>Copy</b>.</div>
+        </div>`;
       root.querySelector("button").addEventListener("click", () => this._copy());
     }
 
@@ -349,12 +392,36 @@ if (typeof customElements !== "undefined" && !customElements.get(TD_COPY_TAG)) {
         const items = this._config.copy_completed ? all : all.filter((i) => i.status === "needs_action");
         if (!items.length) return this._flash("bad", "Nothing to copy");
         const text = items.map((i) => (this._config.copy_bullets ? `- ${i.summary}` : i.summary)).join("\n");
-        await tdWriteClipboard(text);
-        this._flash("ok", `Copied ${items.length} item${items.length === 1 ? "" : "s"}`);
+
+        if (await tdWriteClipboard(text)) {
+          this._hideFallback();
+          this._flash("ok", `Copied ${items.length} item${items.length === 1 ? "" : "s"}`);
+        } else {
+          // The clipboard is not available to us (iOS WKWebView over plain http). Don't just say
+          // "failed" — put the text on screen so it can still be taken by hand.
+          this._showFallback(text);
+          this._flash(null, "Copy the text below");
+        }
       } catch (err) {
         console.error("anim-todo-copy:", err);
-        this._flash("bad", "Copy failed");
+        this._flash("bad", "Couldn't read the list");
       }
+    }
+
+    _showFallback(text) {
+      const fb = this.shadowRoot.querySelector(".fb");
+      const ta = fb.querySelector("textarea");
+      ta.value = text;
+      ta.rows = Math.min(12, Math.max(3, text.split("\n").length));
+      fb.hidden = false;
+      // pre-select, so on iOS a single long-press offers Copy straight away
+      ta.focus();
+      ta.setSelectionRange(0, ta.value.length);
+    }
+
+    _hideFallback() {
+      const fb = this.shadowRoot.querySelector(".fb");
+      if (fb) { fb.hidden = true; fb.querySelector("textarea").value = ""; }
     }
   }
   customElements.define(TD_COPY_TAG, AnimTodoCopy);
