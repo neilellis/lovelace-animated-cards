@@ -233,6 +233,140 @@ const tdList = (c) => ({
       ha-list { --mdc-list-vertical-padding: 2px; }` },
 });
 
+// ── "Copy as plain text" ──────────────────────────────────────────────────────────────────
+// A card kind emits Lovelace CONFIG, which has no way to run JS on a tap — so the copy button
+// has to be a real custom element. It is deliberately NOT registered in window.customCards: it
+// is a part of the to-do card, not something to pick from the card picker on its own.
+const TD_COPY_TAG = "anim-todo-copy";
+
+// ⚠️ navigator.clipboard REQUIRES A SECURE CONTEXT. This house's HA is plain http:// on the LAN
+// (http://homeassistant.local:8123), so on the wall tablet and on any phone using the LAN URL
+// navigator.clipboard is UNDEFINED — only the Nabu Casa https URL gets it. The execCommand path
+// below is therefore the one that actually runs at home, not a legacy fallback. Don't "clean it
+// up".
+const tdWriteClipboard = async (text) => {
+  if (window.isSecureContext && navigator.clipboard) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  // must live in the LIGHT dom — execCommand("copy") does not see a selection inside a shadow root
+  ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none";
+  document.body.appendChild(ta);
+  // iOS Safari ignores .select() on a plain textarea; it needs a contentEditable range as well
+  ta.contentEditable = "true";
+  ta.readOnly = false;
+  const range = document.createRange();
+  range.selectNodeContents(ta);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  ta.setSelectionRange(0, 999999);
+  let ok = false;
+  try { ok = document.execCommand("copy"); } finally { document.body.removeChild(ta); }
+  if (!ok) throw new Error("execCommand('copy') refused");
+};
+
+// ⚠️ `typeof customElements` guard, not a bare `customElements.get(...)`: build.mjs regenerates
+// the README index by importing the concatenated bundle IN NODE (everything except the shell), so
+// a kind file that touches a DOM global at load time fails the build. The shell gets away with its
+// bare defines only because the probe excludes it.
+if (typeof customElements !== "undefined" && !customElements.get(TD_COPY_TAG)) {
+  class AnimTodoCopy extends HTMLElement {
+    setConfig(config) {
+      if (!config || !config.entity) throw new Error("anim-todo-copy: `entity` is required");
+      this._config = config;
+      this._build();
+    }
+    set hass(hass) { this._hass = hass; }
+    getCardSize() { return 1; }
+
+    _build() {
+      if (this._built) return;
+      this._built = true;
+      const root = this.attachShadow({ mode: "open" });
+      root.innerHTML = `
+        <style>
+          /* the list above ends in a fade mask hard against its last row — this padding is what
+             keeps the button from looking welded to it */
+          :host { display: block; padding: 4px 6px 6px; }
+          button {
+            width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin: 0; padding: 9px 12px;
+            font: inherit; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.02em;
+            color: rgb(var(--td-rgb, ${TD_DEFAULT_RGB}));
+            background: rgba(var(--td-rgb, ${TD_DEFAULT_RGB}), 0.10);
+            border: 1px solid rgba(var(--td-rgb, ${TD_DEFAULT_RGB}), 0.28);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+            -webkit-tap-highlight-color: transparent;
+          }
+          button:hover { background: rgba(var(--td-rgb, ${TD_DEFAULT_RGB}), 0.18); }
+          button:active { transform: translateY(1px); }
+          button.ok {
+            color: rgb(${TD_DONE_RGB});
+            background: rgba(${TD_DONE_RGB}, 0.16);
+            border-color: rgba(${TD_DONE_RGB}, 0.42);
+          }
+          button.bad {
+            color: #ff8a80;
+            background: rgba(255, 138, 128, 0.14);
+            border-color: rgba(255, 138, 128, 0.40);
+          }
+          svg { width: 15px; height: 15px; fill: currentColor; flex: none; }
+        </style>
+        <button type="button">
+          <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+          <span>Copy list as text</span>
+        </button>`;
+      root.querySelector("button").addEventListener("click", () => this._copy());
+    }
+
+    _flash(cls, label) {
+      const btn = this.shadowRoot.querySelector("button");
+      const span = btn.querySelector("span");
+      clearTimeout(this._t);
+      btn.classList.remove("ok", "bad");
+      if (cls) btn.classList.add(cls);
+      span.textContent = label;
+      this._t = setTimeout(() => {
+        btn.classList.remove("ok", "bad");
+        span.textContent = "Copy list as text";
+      }, 2000);
+    }
+
+    async _copy() {
+      if (!this._hass) return this._flash("bad", "Not ready");
+      try {
+        // todo/item/list is the same WS command HA's own todo-list card uses. It returns EVERY
+        // item including completed ones, so the filter is not optional — an Alexa shopping list
+        // carries ~100 ticked-off items behind the handful that are actually outstanding.
+        const res = await this._hass.callWS({ type: "todo/item/list", entity_id: this._config.entity });
+        const all = res.items || [];
+        const items = this._config.copy_completed ? all : all.filter((i) => i.status === "needs_action");
+        if (!items.length) return this._flash("bad", "Nothing to copy");
+        const text = items.map((i) => (this._config.copy_bullets ? `- ${i.summary}` : i.summary)).join("\n");
+        await tdWriteClipboard(text);
+        this._flash("ok", `Copied ${items.length} item${items.length === 1 ? "" : "s"}`);
+      } catch (err) {
+        console.error("anim-todo-copy:", err);
+        this._flash("bad", "Copy failed");
+      }
+    }
+  }
+  customElements.define(TD_COPY_TAG, AnimTodoCopy);
+}
+
+const tdCopy = (c) => ({
+  type: `custom:${TD_COPY_TAG}`,
+  entity: c.entity,
+  copy_completed: !!c.show_completed,
+  copy_bullets: !!c.copy_bullets,
+});
+
 const TD_COMMON = {
   domains: ["todo"],
   stub: ["todo", "shopping", "list"],
@@ -241,6 +375,8 @@ const TD_COMMON = {
     { name: "color", selector: { text: {} } },
     { name: "show_completed", selector: { boolean: {} } },
     { name: "hide_add", selector: { boolean: {} } },
+    { name: "copy_button", selector: { boolean: {} } },
+    { name: "copy_bullets", selector: { boolean: {} } },
     { name: "max_height", selector: { number: { min: 60, max: 800, step: 10, mode: "box", unit_of_measurement: "px" } } },
   ],
   help: {
@@ -249,6 +385,8 @@ const TD_COMMON = {
     color: "Colour while items are outstanding, as R, G, B (default 0, 202, 255). Done is always green.",
     show_completed: "Also show ticked-off items — off by default, because a shopping list never forgets one",
     hide_add: "Hide the 'Add item' field (view only)",
+    copy_button: "Add a 'Copy list as text' button, so the whole list can be pasted into a message (large card only)",
+    copy_bullets: "Copy each item as a '- ' bullet rather than a bare line",
     max_height: "How tall the list may get before it scrolls inside the card (default 220)",
   },
 };
@@ -266,6 +404,13 @@ Everything around it is the animation:
   makes the icon disc breathe — the "someone put something on the list" beat.
 - **Unavailable** goes grey and completely still.
 
+**\`copy_button\`** adds a *Copy list as text* button under the list, so the whole thing can be
+pasted into a message — one line per outstanding item (\`copy_bullets\` prefixes each with "- ").
+It copies what the list actually holds at the moment you tap it, not what the card last drew.
+⚠️ Large card only, and note that \`navigator.clipboard\` needs an **https** context: over a plain
+\`http://\` LAN address the button falls back to the old \`execCommand\` path, which is why that
+code is still there.
+
 The count badge is the entity's state; a \`todo\` entity's state is exactly its number of
 outstanding items. Tap the header for the full list dialog, including completed items.
 
@@ -280,7 +425,9 @@ registerKind("todo", {
     const rgb = c.color || TD_DEFAULT_RGB;
     return {
       type: "custom:vertical-stack-in-card",
-      cards: [tdHeader(c, rgb), tdList(c)],
+      cards: c.copy_button
+        ? [tdHeader(c, rgb), tdList(c), tdCopy(c)]
+        : [tdHeader(c, rgb), tdList(c)],
       card_mod: { style: { ".": `
       ha-card {${tdState(c.entity)}${tdVars(rgb)}
         --td-wash: {{ '0.04' if (dead or n == 0) else ('0.13' if fresh else '0.08') }};

@@ -182,8 +182,8 @@ render those cards nearly unreadable rather than merely different. Tested, not a
 | **Animated Switch / Plug** | `custom:anim-switch-card` | `icon` `color` `glow` `active` `power_entity` `hide_power` | Steady glow pulse while on, with the plug's live wattage beside the state |
 | **Animated Temperature** | `custom:anim-temp-card` | — | Breathing thermometer on a calm comfort ramp (20–23 °C reads near-white) |
 | **Animated Temperature (graph)** | `custom:anim-temp-graph-card` | `variant` `graph` `graph_hours` | Banded thermometer with glow + halo layers and a 24 h sparkline bled into the corner |
-| **Animated To-do List (large)** | `custom:anim-todo-card` | `icon` `color` `show_completed` `hide_add` `max_height` | A working to-do/shopping list — tick items off, with a live count badge and a status bar that sweeps while anything is outstanding |
-| **Animated To-do List (small)** | `custom:anim-todo-small-card` | `icon` `color` `show_completed` `hide_add` `max_height` | List tile — how many items are left, sweeping bar while anything is outstanding; tap for the list |
+| **Animated To-do List (large)** | `custom:anim-todo-card` | `icon` `color` `show_completed` `hide_add` `copy_button` `copy_bullets` `max_height` | A working to-do/shopping list — tick items off, with a live count badge and a status bar that sweeps while anything is outstanding |
+| **Animated To-do List (small)** | `custom:anim-todo-small-card` | `icon` `color` `show_completed` `hide_add` `copy_button` `copy_bullets` `max_height` | List tile — how many items are left, sweeping bar while anything is outstanding; tap for the list |
 | **Animated Tumble Dryer** | `custom:anim-dryer-card` | `source` `icon` `power_entity` `switch_entity` `running_entity` `remaining_entity` `door_entity` `percent_entity` `max_minutes` `drying_states` `cooling_states` `done_states` `active_above` `heat_above` | Drum fills and turns — orange steam on heat, blue breeze on cool-down, sparkle when done |
 | **Animated Vacuum** | `custom:anim-vacuum-card` | `icon` `color` `active` | Robot wanders a cleaning path while the vacuum runs |
 | **Animated Vibration** | `custom:anim-vibration-card` | `icon` `color` `glow` `speed` `active` | Icon judders with a shockwave ring while something is vibrating; quiet and dim when still |
@@ -559,6 +559,13 @@ Everything around it is the animation:
   makes the icon disc breathe — the "someone put something on the list" beat.
 - **Unavailable** goes grey and completely still.
 
+**`copy_button`** adds a *Copy list as text* button under the list, so the whole thing can be
+pasted into a message — one line per outstanding item (`copy_bullets` prefixes each with "- ").
+It copies what the list actually holds at the moment you tap it, not what the card last drew.
+⚠️ Large card only, and note that `navigator.clipboard` needs an **https** context: over a plain
+`http://` LAN address the button falls back to the old `execCommand` path, which is why that
+code is still there.
+
 The count badge is the entity's state; a `todo` entity's state is exactly its number of
 outstanding items. Tap the header for the full list dialog, including completed items.
 
@@ -580,6 +587,13 @@ Everything around it is the animation:
 - **Just changed** (something added or ticked in the last 5 minutes) speeds the sweep up and
   makes the icon disc breathe — the "someone put something on the list" beat.
 - **Unavailable** goes grey and completely still.
+
+**`copy_button`** adds a *Copy list as text* button under the list, so the whole thing can be
+pasted into a message — one line per outstanding item (`copy_bullets` prefixes each with "- ").
+It copies what the list actually holds at the moment you tap it, not what the card last drew.
+⚠️ Large card only, and note that `navigator.clipboard` needs an **https** context: over a plain
+`http://` LAN address the button falls back to the old `execCommand` path, which is why that
+code is still there.
 
 The count badge is the entity's state; a `todo` entity's state is exactly its number of
 outstanding items. Tap the header for the full list dialog, including completed items.
