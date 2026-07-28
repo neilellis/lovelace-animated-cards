@@ -135,6 +135,8 @@ render those cards nearly unreadable rather than merely different. Tested, not a
 | **Animated Battery** | `custom:anim-battery-card` | `variant` `charging_entity` `low` `medium` `target_soc` `icon` `color_low` `color_medium` `color_high` `color_charging` | Battery level — liquid disc, card-wide fill or striped bar; charging is its own colour |
 | **Animated Battery List (large)** | `custom:anim-battery-list-card` | `group_by` `threshold` `include_rechargeable` `name` `icon` `color` `max_height` | Every battery that needs replacing, grouped by type (or room), with what to buy — from the Battery Notes integration, no entity needed |
 | **Animated Battery List (small)** | `custom:anim-battery-list-small-card` | `group_by` `threshold` `include_rechargeable` `name` `icon` `color` `popup_hash` | Battery shopping tile — how many need replacing at a glance; tap it for the full list in a pop-up |
+| **Animated Bin Collection (large)** | `custom:anim-bin-collection-card` | `entities` `label` `entities_2` `label_2` `colours` `containers` `name` | Which bin goes out and when — every bin, in its real colour, for one or two households |
+| **Animated Bin Collection (small)** | `custom:anim-bin-collection-small-card` | `entities` `label` `entities_2` `label_2` `colours` `containers` `name` | The next bin out, at a glance — one tile, in the bin's own colour |
 | **Animated Charger** | `custom:anim-charger-card` | `icon` `color` `glow` `speed` `power_entity` `active` | Plug that swells, halos and throws electric arcs while charging — pulse rate tracks the draw |
 | **Animated Climate Tile** | `custom:anim-climate-card` | — | Compact zone tile — icon coloured/glowing by room temp, tap toggles the zone |
 | **Animated Clock** | `custom:anim-clock-card` | `variant` `glow` `twelve_hour` `hide_date` | Time in the house card language — an analog dial drawn in the icon disc (or a quiet digital readout). No looping animation: the hands only move when the minute does |
@@ -195,7 +197,7 @@ render those cards nearly unreadable rather than merely different. Tested, not a
 | **Animated Water Tank** | `custom:anim-water-tank-card` | `icon` `color` `low_color` `low_at` `height` | Tank that fills with blue water, twin counter-scrolling surfaces, red below the low mark |
 | **Animated Weather** | `custom:anim-weather-card` | `icon` `temp_entity` `condition_entity` `feels_like_entity` `humidity_entity` `wind_entity` `sun_entity` `tap_navigate` `trend_entity` | Living sky — sun/moon, drifting cloud, rain, snow, fog and lightning by condition |
 
-Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 70 designs above.
+Plus `custom:animated-card` — the generic card with a *kind* dropdown covering all 72 designs above.
 
 <details><summary><b>Animated 3D Printer</b> — notes</summary>
 
@@ -308,6 +310,62 @@ from the bottom, because a 6-column tile can show a count but never the list. Gi
 
 Needs **vertical-stack-in-card** (HACS) for the large size, and **Bubble Card** (HACS) for the small
 tile's pop-up.
+
+</details>
+
+<details><summary><b>Animated Bin Collection (large)</b> — notes</summary>
+
+For the [UK Bin Collection Data](https://github.com/robbrad/UKBinCollectionData)
+integration. Bind the **main sensor for each bin type** — the one whose attributes include
+`next_collection` — and the card does the rest.
+
+- **Dates are computed from `next_collection` against `now()`, never from the sensor's state.**
+  That state ("In 3 days") is worked out when the council was last scraped, so it goes stale between
+  polls and is simply wrong if a scrape fails and the integration serves last-known-good data. The
+  card re-derives every minute, so it is right even when the data behind it is a day old.
+- **Colours must be configured** (`colours`). The integration's own `colour` attribute is not
+  usable — Brighton & Hove, for one, reports `black` for every bin. And councils disagree about
+  meaning: Brighton's **black** bin is recycling and its **green** bin is general waste, the inverse
+  of most of England. The default is the commonest English scheme; one line changes it.
+- **Two households on one card.** Fill in `entities_2` and `label_2` for a second address — a
+  shared house, a corner property on two rounds, or an elderly relative's collections. Leave them
+  empty and it is an ordinary one-household card with no labels.
+- **Food waste is drawn as a caddy**, everything else as a wheelie bin; `containers` overrides it.
+  A two-tone caddy (grey bucket, green lid) is `food:grey/green`.
+
+Idle is quiet: a collection days out is a dim, still card. The evening before, the bin nudges and
+the colour comes up; on the day it wobbles. A bin whose date has passed says "Missed" rather than
+counting into negative days.
+
+The large card needs **vertical-stack-in-card** (HACS).
+
+</details>
+
+<details><summary><b>Animated Bin Collection (small)</b> — notes</summary>
+
+For the [UK Bin Collection Data](https://github.com/robbrad/UKBinCollectionData)
+integration. Bind the **main sensor for each bin type** — the one whose attributes include
+`next_collection` — and the card does the rest.
+
+- **Dates are computed from `next_collection` against `now()`, never from the sensor's state.**
+  That state ("In 3 days") is worked out when the council was last scraped, so it goes stale between
+  polls and is simply wrong if a scrape fails and the integration serves last-known-good data. The
+  card re-derives every minute, so it is right even when the data behind it is a day old.
+- **Colours must be configured** (`colours`). The integration's own `colour` attribute is not
+  usable — Brighton & Hove, for one, reports `black` for every bin. And councils disagree about
+  meaning: Brighton's **black** bin is recycling and its **green** bin is general waste, the inverse
+  of most of England. The default is the commonest English scheme; one line changes it.
+- **Two households on one card.** Fill in `entities_2` and `label_2` for a second address — a
+  shared house, a corner property on two rounds, or an elderly relative's collections. Leave them
+  empty and it is an ordinary one-household card with no labels.
+- **Food waste is drawn as a caddy**, everything else as a wheelie bin; `containers` overrides it.
+  A two-tone caddy (grey bucket, green lid) is `food:grey/green`.
+
+Idle is quiet: a collection days out is a dim, still card. The evening before, the bin nudges and
+the colour comes up; on the day it wobbles. A bin whose date has passed says "Missed" rather than
+counting into negative days.
+
+The large card needs **vertical-stack-in-card** (HACS).
 
 </details>
 
